@@ -2,3 +2,4 @@ rootProject.name = 'feather'
 
 include ':microservices:user'
 include ':microservices:chat'
+include ':lib'
