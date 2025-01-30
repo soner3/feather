@@ -5,19 +5,19 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-7" value="User" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="160" height="130" as="geometry" />
+          <mxGeometry x="40" y="80" width="160" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="oVwXMsBCDr5CwH-8BlyU-8" value="- pk: Long&lt;br&gt;- userId: String&lt;br&gt;- email: String&lt;div&gt;- username: String&lt;/div&gt;&lt;div&gt;- profileId: String&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-7">
-          <mxGeometry y="50" width="160" height="80" as="geometry" />
+        <mxCell id="oVwXMsBCDr5CwH-8BlyU-8" value="- pk: Long&lt;br&gt;- userId: String&lt;br&gt;- email: String&lt;div&gt;- username: String&lt;/div&gt;&lt;div&gt;&lt;div&gt;- firstName: String&lt;/div&gt;&lt;div&gt;- lastName: String&lt;/div&gt;&lt;/div&gt;&lt;div&gt;- profileId: String&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-7">
+          <mxGeometry y="50" width="160" height="110" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-9" value="User_Authority" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="280" y="80" width="160" height="120" as="geometry" />
+          <mxGeometry x="280" y="90" width="160" height="120" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-10" value="&lt;div&gt;- pk: Long&lt;/div&gt;&lt;div&gt;- userAuthorityId: String&lt;/div&gt;- userId:String&lt;div&gt;- roleId: String&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-9">
           <mxGeometry y="50" width="160" height="70" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-11" value="Authority" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="520" y="80" width="160" height="120" as="geometry" />
+          <mxGeometry x="520" y="90" width="160" height="120" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-12" value="- pk: Integer&lt;div&gt;&lt;div&gt;- authorityId: String&lt;/div&gt;&lt;div&gt;- authority: String&lt;/div&gt;&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-11">
           <mxGeometry y="50" width="160" height="70" as="geometry" />
@@ -35,9 +35,9 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-20" value="Profile" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="40" y="280" width="160" height="230" as="geometry" />
+          <mxGeometry x="40" y="320" width="160" height="230" as="geometry" />
         </mxCell>
-        <mxCell id="oVwXMsBCDr5CwH-8BlyU-21" value="- pk: Long&lt;div&gt;- profileId: String&lt;/div&gt;&lt;div&gt;&lt;div&gt;- firstName: String&lt;/div&gt;&lt;div&gt;- lastName: String&lt;/div&gt;&lt;/div&gt;&lt;div&gt;- profilePictureId: String&lt;/div&gt;&lt;div&gt;- country: String&lt;/div&gt;&lt;div&gt;- city: String&lt;/div&gt;&lt;div&gt;- plz: int&lt;/div&gt;&lt;div&gt;- street: String&lt;/div&gt;&lt;div&gt;- streetNumber: int&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-20">
+        <mxCell id="oVwXMsBCDr5CwH-8BlyU-21" value="- pk: Long&lt;div&gt;- profileId: String&lt;/div&gt;&lt;div&gt;- profilePictureId: String&lt;/div&gt;&lt;div&gt;- country: String&lt;/div&gt;&lt;div&gt;- city: String&lt;/div&gt;&lt;div&gt;- plz: int&lt;/div&gt;&lt;div&gt;- street: String&lt;/div&gt;&lt;div&gt;- streetNumber: int&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-20">
           <mxGeometry y="50" width="160" height="180" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-23" value="" style="fontSize=12;html=1;endArrow=ERmandOne;startArrow=ERmandOne;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="oVwXMsBCDr5CwH-8BlyU-20" target="oVwXMsBCDr5CwH-8BlyU-8">
@@ -47,7 +47,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-26" value="Profile_Meta" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="280" y="300" width="160" height="190" as="geometry" />
+          <mxGeometry x="280" y="340" width="160" height="190" as="geometry" />
         </mxCell>
         <mxCell id="oVwXMsBCDr5CwH-8BlyU-27" value="- pk: Long&lt;div&gt;- profileMetaId: String&lt;/div&gt;&lt;div&gt;- profileId: String&lt;br&gt;&lt;div&gt;- status: ProfileStatus&lt;div&gt;- lastOnline: LocalDateTime&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="oVwXMsBCDr5CwH-8BlyU-26">
           <mxGeometry y="50" width="160" height="140" as="geometry" />
