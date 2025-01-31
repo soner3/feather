@@ -1,0 +1,9 @@
+include:
+  - ./authserver/compose.yml
+
+networks:
+  feather-network:
+    driver: bridge
+
+volumes:
+  auth-db: {}
