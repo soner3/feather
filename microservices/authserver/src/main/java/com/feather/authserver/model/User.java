@@ -52,19 +52,34 @@ public class User extends AuditEntity {
     @ToString.Exclude
     private String password;
 
+    @Column(name = "is_account_non_expired")
+    private boolean isAccountNonExpired;
+
+    @Column(name = "is_account_non_locked")
+    private boolean isAccountNonLocked;
+
+    @Column(name = "is_credentials_non_expired")
+    private boolean isCredentialsNonExpired;
+
+    @Column(name = "is_enabled")
+    private boolean isEnabled;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<UserGroup> userGroups = new ArrayList<>();
 
-    public User(String email, String username, String phoneNumber, String firstName, String lastName,
-            String password) {
+    public User(String email, String username, String phoneNumber, String firstName, String lastName, String password) {
         this.email = email;
         this.username = username;
         this.phoneNumber = phoneNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
+        this.isAccountNonExpired = true;
+        this.isAccountNonLocked = true;
+        this.isCredentialsNonExpired = true;
+        this.isEnabled = true;
     }
 
 }
