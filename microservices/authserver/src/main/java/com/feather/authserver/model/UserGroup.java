@@ -6,7 +6,11 @@ import com.feather.lib.model.AuditEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,25 +22,27 @@ import lombok.ToString;
 @Table(name = "User_Group")
 @EqualsAndHashCode(callSuper = false)
 @ToString
-@NoArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
 public class UserGroup extends AuditEntity {
 
     @Id
     @Column(name = "user_group_id", unique = true, nullable = false)
-    private String userGroupId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @ManyToOne
+    @JoinColumn(name = "user_fk", nullable = false)
+    private User user;
 
-    @Column(name = "group_id", nullable = false)
-    private String groupId;
+    @ManyToOne
+    @JoinColumn(name = "group_fk", nullable = false)
+    private Group group;
 
-    public UserGroup(String userId, String groupId) {
-        this.userGroupId = UUID.randomUUID().toString();
-        this.userId = userId;
-        this.groupId = groupId;
+    public UserGroup(User user, Group group) {
+        this.user = user;
+        this.group = group;
     }
 
 }

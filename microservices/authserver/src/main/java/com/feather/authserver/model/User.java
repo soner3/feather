@@ -1,12 +1,18 @@
 package com.feather.authserver.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.feather.lib.model.AuditEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,7 +21,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "User")
+@Table(name = "Feather-User")
 @EqualsAndHashCode(callSuper = false)
 @ToString
 @NoArgsConstructor
@@ -25,7 +31,8 @@ public class User extends AuditEntity {
 
     @Id
     @Column(name = "user_id", unique = true, nullable = false)
-    private String userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(unique = true)
     private String email;
@@ -45,9 +52,13 @@ public class User extends AuditEntity {
     @ToString.Exclude
     private String password;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<UserGroup> userGroups = new ArrayList<>();
+
     public User(String email, String username, String phoneNumber, String firstName, String lastName,
             String password) {
-        this.userId = UUID.randomUUID().toString();
         this.email = email;
         this.username = username;
         this.phoneNumber = phoneNumber;

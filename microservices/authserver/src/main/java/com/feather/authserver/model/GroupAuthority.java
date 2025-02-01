@@ -4,7 +4,11 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,18 +27,20 @@ public class GroupAuthority {
 
     @Id
     @Column(name = "group_authority_id", unique = true, nullable = false)
-    private String groupAuthorityId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(name = "group_id", nullable = false)
-    private String groupId;
+    @ManyToOne
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-    @Column(name = "authority_id", nullable = false)
-    private String authorityId;
+    @ManyToOne
+    @JoinColumn(name = "authority_id", nullable = false)
+    private Authority authority;
 
-    public GroupAuthority(String groupId, String authorityId) {
-        this.groupAuthorityId = UUID.randomUUID().toString();
-        this.groupId = groupId;
-        this.authorityId = authorityId;
+    public GroupAuthority(Group group, Authority authority) {
+        this.group = group;
+        this.authority = authority;
     }
 
 }
