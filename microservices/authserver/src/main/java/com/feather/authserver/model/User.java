@@ -12,6 +12,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
@@ -69,7 +71,12 @@ public class User extends AuditEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<UserGroup> userGroups = new ArrayList<>();
 
-    public User(String email, String username, String phoneNumber, String firstName, String lastName, String password) {
+    @ManyToOne
+    @JoinColumn(name = "role_fk", nullable = false)
+    private Role role;
+
+    public User(String email, String username, String phoneNumber, String firstName, String lastName, String password,
+            Role role) {
         this.email = email;
         this.username = username;
         this.phoneNumber = phoneNumber;
@@ -80,6 +87,7 @@ public class User extends AuditEntity {
         this.isAccountNonLocked = true;
         this.isCredentialsNonExpired = true;
         this.isEnabled = true;
+        this.role = role;
     }
 
 }

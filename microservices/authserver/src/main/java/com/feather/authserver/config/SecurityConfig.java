@@ -5,7 +5,11 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,44 +18,67 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationContext;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
+import com.feather.authserver.config.user.OidcUserInfoService;
+import com.feather.authserver.service.UserService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+        private final OidcUserInfoService oidcUserInfoService;
 
         @Bean
         @Order(1)
         protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
                         throws Exception {
+                Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
+                        OidcUserInfoAuthenticationToken authentication = context.getAuthentication();
+                        JwtAuthenticationToken principal = (JwtAuthenticationToken) authentication.getPrincipal();
+
+                        return oidcUserInfoService.loadUser(principal.getToken().getClaim("sub"));
+
+                };
                 OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
                                 .authorizationServer();
 
                 http
                                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
                                 .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
-                                                .oidc(Customizer.withDefaults()))
+                                                .oidc(oidc -> oidc.userInfoEndpoint(userInfo -> userInfo
+                                                                .userInfoMapper(userInfoMapper))))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
                                 .exceptionHandling((exceptions) -> exceptions
@@ -130,6 +157,31 @@ public class SecurityConfig {
         @Bean
         protected AuthorizationServerSettings authorizationServerSettings() {
                 return AuthorizationServerSettings.builder().build();
+        }
+
+        @Bean
+        protected OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
+                return (context) -> {
+                        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+                                context.getClaims().claims((claims) -> {
+                                        if (context.getAuthorizationGrantType()
+                                                        .equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
+                                                Set<String> roles = context.getClaims().build().getClaim("scope");
+                                                claims.put("roles", roles);
+                                        } else if (context.getAuthorizationGrantType()
+                                                        .equals(AuthorizationGrantType.AUTHORIZATION_CODE)) {
+                                                Set<String> roles = AuthorityUtils
+                                                                .authorityListToSet(
+                                                                                context.getPrincipal().getAuthorities())
+                                                                .stream()
+                                                                .collect(Collectors.collectingAndThen(
+                                                                                Collectors.toSet(),
+                                                                                Collections::unmodifiableSet));
+                                                claims.put("roles", roles);
+                                        }
+                                });
+                        }
+                };
         }
 
 }
