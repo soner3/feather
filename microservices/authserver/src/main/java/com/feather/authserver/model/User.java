@@ -9,7 +9,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 @Entity
@@ -17,6 +19,8 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 @NoArgsConstructor
+@Getter
+@Setter
 public class User extends AuditEntity {
 
     @Id
@@ -38,6 +42,7 @@ public class User extends AuditEntity {
     @Column(name = "last_name")
     private String lastName;
 
+    @ToString.Exclude
     private String password;
 
     public User(String email, String username, String phoneNumber, String firstName, String lastName,

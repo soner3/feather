@@ -14,9 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -30,7 +27,6 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -45,106 +41,95 @@ import com.nimbusds.jose.proc.SecurityContext;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    @Order(1)
-    protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
-                .authorizationServer();
+        @Bean
+        @Order(1)
+        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+                        throws Exception {
+                OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
+                                .authorizationServer();
 
-        http
-                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
-                        .oidc(Customizer.withDefaults()))
-                .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().authenticated())
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+                http
+                                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+                                .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
+                                                .oidc(Customizer.withDefaults()))
+                                .authorizeHttpRequests((authorize) -> authorize
+                                                .anyRequest().authenticated())
+                                .exceptionHandling((exceptions) -> exceptions
+                                                .defaultAuthenticationEntryPointFor(
+                                                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
-    protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        http
-                .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
-
-        return http.build();
-    }
-
-    @Bean
-    protected UserDetailsService userDetailsService() {
-        UserDetails userDetails = User.withDefaultPasswordEncoder()
-                .username("user")
-                .password("password")
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(userDetails);
-    }
-
-    @Bean
-    protected RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oauth-client")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:9090/login/oauth2/code/oidc-client")
-                .postLogoutRedirectUri("http://127.0.0.1:9090/")
-                .scope(OidcScopes.OPENID)
-                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
-                .tokenSettings(TokenSettings
-                        .builder()
-                        .accessTokenTimeToLive(Duration.ofMinutes(5))
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .refreshTokenTimeToLive(Duration.ofDays(1))
-                        .reuseRefreshTokens(false)
-                        .build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(oauthClient);
-    }
-
-    @Bean
-    protected JWKSource<SecurityContext> jwkSource() {
-        KeyPair keyPair = generateRsaKey();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
-                .build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return new ImmutableJWKSet<>(jwkSet);
-    }
-
-    private static KeyPair generateRsaKey() {
-        KeyPair keyPair;
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(4096);
-            keyPair = keyPairGenerator.generateKeyPair();
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
+                return http.build();
         }
-        return keyPair;
-    }
 
-    @Bean
-    protected JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
+        @Bean
+        @Order(2)
+        protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+                        throws Exception {
+                http
+                                .authorizeHttpRequests((authorize) -> authorize
+                                                .anyRequest().authenticated())
+                                .formLogin(Customizer.withDefaults());
 
-    @Bean
-    protected AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
-    }
+                return http.build();
+        }
+
+        @Bean
+        protected RegisteredClientRepository registeredClientRepository() {
+                RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("oauth-client")
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("http://127.0.0.1:9090/login/oauth2/code/oidc-client")
+                                .postLogoutRedirectUri("http://127.0.0.1:9090/")
+                                .scope(OidcScopes.OPENID)
+                                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
+                                .tokenSettings(TokenSettings
+                                                .builder()
+                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                                .refreshTokenTimeToLive(Duration.ofDays(1))
+                                                .reuseRefreshTokens(false)
+                                                .build())
+                                .build();
+
+                return new InMemoryRegisteredClientRepository(oauthClient);
+        }
+
+        @Bean
+        protected JWKSource<SecurityContext> jwkSource() {
+                KeyPair keyPair = generateRsaKey();
+                RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+                RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+                RSAKey rsaKey = new RSAKey.Builder(publicKey)
+                                .privateKey(privateKey)
+                                .keyID(UUID.randomUUID().toString())
+                                .build();
+                JWKSet jwkSet = new JWKSet(rsaKey);
+                return new ImmutableJWKSet<>(jwkSet);
+        }
+
+        private static KeyPair generateRsaKey() {
+                KeyPair keyPair;
+                try {
+                        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                        keyPairGenerator.initialize(4096);
+                        keyPair = keyPairGenerator.generateKeyPair();
+                } catch (Exception ex) {
+                        throw new IllegalStateException(ex);
+                }
+                return keyPair;
+        }
+
+        @Bean
+        protected JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+                return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+        }
+
+        @Bean
+        protected AuthorizationServerSettings authorizationServerSettings() {
+                return AuthorizationServerSettings.builder().build();
+        }
 
 }
