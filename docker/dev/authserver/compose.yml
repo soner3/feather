@@ -9,7 +9,7 @@ services:
       - MYSQL_DATABASE=auth-db
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
-    volumes:
-      - ./../../../data/auth-db:/var/lib/mysql
+    # volumes:
+    #   - ./../../../data/auth-db:/var/lib/mysql
     networks:
       - feather-network

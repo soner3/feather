@@ -4,6 +4,3 @@ include:
 networks:
   feather-network:
     driver: bridge
-
-volumes:
-  auth-db: {}

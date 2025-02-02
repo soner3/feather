@@ -15,10 +15,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -41,6 +44,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
@@ -51,18 +55,14 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-import lombok.RequiredArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-
-        private final OidcUserInfoService oidcUserInfoService;
 
         @Bean
         @Order(1)
-        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
+                        OidcUserInfoService oidcUserInfoService)
                         throws Exception {
                 Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
                         OidcUserInfoAuthenticationToken authentication = context.getAuthentication();
@@ -108,7 +108,7 @@ public class SecurityConfig {
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                                .redirectUri("http://127.0.0.1:9090/login/oauth2/code/oidc-client")
+                                .redirectUri("https://oauth.pstmn.io/v1/vscode-callback")
                                 .postLogoutRedirectUri("http://127.0.0.1:9090/")
                                 .scope(OidcScopes.OPENID)
                                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
@@ -120,8 +120,24 @@ public class SecurityConfig {
                                                 .reuseRefreshTokens(false)
                                                 .build())
                                 .build();
-
-                return new InMemoryRegisteredClientRepository(oauthClient);
+                RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("auth")
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .clientSecret("{noop}secret")
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("https://oauth.pstmn.io/v1/vscode-callback")
+                                .postLogoutRedirectUri("http://127.0.0.1:9090/")
+                                .scope(OidcScopes.OPENID)
+                                .tokenSettings(TokenSettings
+                                                .builder()
+                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                                .refreshTokenTimeToLive(Duration.ofDays(1))
+                                                .reuseRefreshTokens(false)
+                                                .build())
+                                .build();
+                return new InMemoryRegisteredClientRepository(oauthClient, oauth2Client);
         }
 
         @Bean
@@ -182,6 +198,16 @@ public class SecurityConfig {
                                 });
                         }
                 };
+        }
+
+        @Bean
+        protected PasswordEncoder passwordEncoder() {
+                return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        }
+
+        @Bean
+        protected CompromisedPasswordChecker passwordChecker() {
+                return new HaveIBeenPwnedRestApiPasswordChecker();
         }
 
 }

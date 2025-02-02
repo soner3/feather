@@ -1,18 +1,19 @@
 package com.feather.authserver.model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.feather.lib.model.AuditEntity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -27,6 +28,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 @Setter
+@EntityListeners(AuditingEntityListener.class)
 public class Authority extends AuditEntity {
 
     @Id
@@ -36,10 +38,9 @@ public class Authority extends AuditEntity {
 
     private String name;
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "authority", cascade = CascadeType.PERSIST, orphanRemoval = false)
-    List<GroupAuthority> groupAuthorities = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "role_fk", nullable = false)
+    private Role role;
 
     public Authority(String authority) {
         this.name = authority;
