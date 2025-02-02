@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
@@ -33,19 +32,19 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationContext;
-import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
 import com.feather.authserver.service.UserService;
@@ -64,23 +63,17 @@ public class SecurityConfig {
         protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
                         OidcUserInfoService oidcUserInfoService)
                         throws Exception {
-                Function<OidcUserInfoAuthenticationContext, OidcUserInfo> userInfoMapper = (context) -> {
-                        OidcUserInfoAuthenticationToken authentication = context.getAuthentication();
-                        JwtAuthenticationToken principal = (JwtAuthenticationToken) authentication.getPrincipal();
 
-                        return oidcUserInfoService.loadUser(principal.getToken().getClaim("sub"));
-
-                };
                 OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
                                 .authorizationServer();
 
                 http
                                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
                                 .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
-                                                .oidc(oidc -> oidc.userInfoEndpoint(userInfo -> userInfo
-                                                                .userInfoMapper(userInfoMapper))))
+                                                .oidc(Customizer.withDefaults()))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
+                                .cors(Customizer.withDefaults())
                                 .exceptionHandling((exceptions) -> exceptions
                                                 .defaultAuthenticationEntryPointFor(
                                                                 new LoginUrlAuthenticationEntryPoint("/login"),
@@ -96,7 +89,8 @@ public class SecurityConfig {
                 http
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
-                                .formLogin(Customizer.withDefaults());
+                                .formLogin(Customizer.withDefaults())
+                                .cors(Customizer.withDefaults());
 
                 return http.build();
         }
@@ -166,6 +160,18 @@ public class SecurityConfig {
         }
 
         @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                CorsConfiguration config = new CorsConfiguration();
+                config.addAllowedHeader("*");
+                config.addAllowedMethod("*");
+                config.addAllowedOrigin("http://localhost:8080");
+                config.setAllowCredentials(true);
+                source.registerCorsConfiguration("/**", config);
+                return source;
+        }
+
+        @Bean
         protected JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
                 return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
         }
@@ -176,10 +182,14 @@ public class SecurityConfig {
         }
 
         @Bean
-        protected OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
+        protected OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService,
+                        OidcUserInfoService oidcUserInfoService) {
                 return (context) -> {
                         if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                                 context.getClaims().claims((claims) -> {
+                                        OidcUserInfo oidcUserInfo = oidcUserInfoService
+                                                        .loadUser((String) claims.get("sub"));
+                                        claims.putAll(oidcUserInfo.getClaims());
                                         if (context.getAuthorizationGrantType()
                                                         .equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
                                                 Set<String> roles = context.getClaims().build().getClaim("scope");
