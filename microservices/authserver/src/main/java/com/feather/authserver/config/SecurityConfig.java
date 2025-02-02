@@ -6,6 +6,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,9 +43,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
 import com.feather.authserver.service.UserService;
@@ -73,7 +71,6 @@ public class SecurityConfig {
                                                 .oidc(Customizer.withDefaults()))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
-                                .cors(Customizer.withDefaults())
                                 .exceptionHandling((exceptions) -> exceptions
                                                 .defaultAuthenticationEntryPointFor(
                                                                 new LoginUrlAuthenticationEntryPoint("/login"),
@@ -89,8 +86,7 @@ public class SecurityConfig {
                 http
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
-                                .formLogin(Customizer.withDefaults())
-                                .cors(Customizer.withDefaults());
+                                .formLogin(Customizer.withDefaults());
 
                 return http.build();
         }
@@ -114,24 +110,16 @@ public class SecurityConfig {
                                                 .reuseRefreshTokens(false)
                                                 .build())
                                 .build();
-                RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("auth")
+
+                RegisteredClient profileClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("profile-client")
+                                .clientSecret("{noop}kuz54zf6vkjuh64v")
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                                .clientSecret("{noop}secret")
-                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                                .redirectUri("https://oauth.pstmn.io/v1/vscode-callback")
-                                .postLogoutRedirectUri("http://127.0.0.1:9090/")
-                                .scope(OidcScopes.OPENID)
-                                .tokenSettings(TokenSettings
-                                                .builder()
-                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
-                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                                                .refreshTokenTimeToLive(Duration.ofDays(1))
-                                                .reuseRefreshTokens(false)
-                                                .build())
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scopes(scopes -> scopes.addAll(List.of(OidcScopes.OPENID)))
                                 .build();
-                return new InMemoryRegisteredClientRepository(oauthClient, oauth2Client);
+
+                return new InMemoryRegisteredClientRepository(oauthClient, profileClient);
         }
 
         @Bean
@@ -159,17 +147,18 @@ public class SecurityConfig {
                 return keyPair;
         }
 
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                CorsConfiguration config = new CorsConfiguration();
-                config.addAllowedHeader("*");
-                config.addAllowedMethod("*");
-                config.addAllowedOrigin("http://localhost:8080");
-                config.setAllowCredentials(true);
-                source.registerCorsConfiguration("/**", config);
-                return source;
-        }
+        // @Bean
+        // protected CorsConfigurationSource corsConfigurationSource() {
+        // UrlBasedCorsConfigurationSource source = new
+        // UrlBasedCorsConfigurationSource();
+        // CorsConfiguration config = new CorsConfiguration();
+        // config.addAllowedHeader("*");
+        // config.addAllowedMethod("*");
+        // config.addAllowedOrigin("http://localhost:8080");
+        // config.setAllowCredentials(true);
+        // source.registerCorsConfiguration("/**", config);
+        // return source;
+        // }
 
         @Bean
         protected JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
