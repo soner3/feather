@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.authentication.password.CompromisedPasswordDecision;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +14,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.feather.authserver.dto.CreateUserDto;
 import com.feather.authserver.exception.CompromisedPasswordException;
 import com.feather.authserver.model.Authority;
 import com.feather.authserver.model.FeatherRole;
@@ -20,6 +22,8 @@ import com.feather.authserver.model.User;
 import com.feather.authserver.repository.RoleRepository;
 import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
+import com.feather.lib.dto.user.CreateUserDto;
+import com.feather.lib.dto.user.ResponseUserDto;
 import com.feather.lib.exception.NotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final CompromisedPasswordChecker passwordChecker;
     private final PasswordEncoder passwordEncoder;
+    private final ConversionService conversionService;
 
     @Override
     public Collection<? extends GrantedAuthority> loadAuthorities(User user) {
@@ -58,40 +63,41 @@ public class UserServiceImpl implements UserService {
                                 .orElseThrow(() -> new NotFoundException("No user found for: " + usernameOrEmail)));
     }
 
-    @Override
-    public User createAdminUser(CreateUserDto createUserDto) {
+    public ResponseEntity<ResponseUserDto> createUser(CreateUserDto createUserDto, FeatherRole role) {
         checkPassword(createUserDto.password());
-        Role adminRole = getRole(FeatherRole.ROLE_ADMIN);
-        return createUser(createUserDto, adminRole);
+        Role userRole;
 
-    }
+        switch (role) {
+            case ROLE_ADMIN:
+                userRole = getRole(FeatherRole.ROLE_ADMIN);
+                break;
 
-    @Override
-    public User createStaffUser(CreateUserDto createUserDto) {
-        checkPassword(createUserDto.password());
-        Role staffRole = getRole(FeatherRole.ROLE_STAFF);
-        return createUser(createUserDto, staffRole);
+            case ROLE_STAFF:
+                userRole = getRole(FeatherRole.ROLE_STAFF);
+                break;
 
-    }
+            case ROLE_USER:
+                userRole = getRole(FeatherRole.ROLE_USER);
+                break;
 
-    @Override
-    public User createUser(CreateUserDto createUserDto) {
-        checkPassword(createUserDto.password());
-        Role userRole = getRole(FeatherRole.ROLE_USER);
-        return createUser(createUserDto, userRole);
+            default:
+                userRole = getRole(FeatherRole.ROLE_USER);
+                break;
+        }
+
+        User user = new User(createUserDto.email(), createUserDto.username(), createUserDto.phoneNumber(),
+                createUserDto.firstName(), createUserDto.lastName(), passwordEncoder.encode(createUserDto.password()),
+                userRole);
+
+        User savedUser = userRepository.save(user);
+        ResponseUserDto responseUserDto = conversionService.convert(savedUser, ResponseUserDto.class);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseUserDto);
 
     }
 
     private Role getRole(FeatherRole role) {
         return roleRepository.findByName(role)
                 .orElseThrow(() -> new NotFoundException("Role not found for name: " + role.toString()));
-    }
-
-    private User createUser(CreateUserDto createUserDto, Role role) {
-        User user = new User(createUserDto.email(), createUserDto.username(), createUserDto.phoneNumber(),
-                createUserDto.firstName(), createUserDto.lastName(), passwordEncoder.encode(createUserDto.password()),
-                role);
-        return userRepository.save(user);
     }
 
     private void checkPassword(String password) {
