@@ -1,0 +1,13 @@
+services:
+  profile-server-db:
+    container_name: profile-server-db
+    image: mysql:9.2.0-oraclelinux9
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=profile-db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    networks:
+      - feather-network

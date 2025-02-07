@@ -1,5 +1,6 @@
 include:
-  - ./authserver/compose.yml
+  - ./microservices/authserver/compose.yml
+  - ./microservices/profile/compose.yml
 
 networks:
   feather-network:
