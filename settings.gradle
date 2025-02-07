@@ -1,4 +1,5 @@
 rootProject.name = 'feather'
 
 include ':microservices:authserver'
+include ':microservices:profile'
 include ':lib'

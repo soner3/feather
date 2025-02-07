@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: profile
+  datasource:
+    username: user
+    password: password
+    url: jdbc:mysql://localhost:3307/profile-db
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9090
+      client:
+        registration:
+          auth-server:
+            client-id: profile-client
+            client-secret: kuz54zf6vkjuh64v
+            authorization-grant-type: client_credential
+            scope:
+              - openid
+        provider:
+          auth-server:
+            issuer-uri: http://localhost:9090
