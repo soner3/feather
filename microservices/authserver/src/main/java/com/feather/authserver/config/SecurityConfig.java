@@ -6,7 +6,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,6 +45,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
 import com.feather.authserver.service.UserService;
+import com.feather.lib.util.ClientRegistrationId;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -84,7 +84,9 @@ public class SecurityConfig {
         protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
+
                                 .authorizeHttpRequests((authorize) -> authorize
+                                                .requestMatchers("/v1/user/public").permitAll()
                                                 .anyRequest().authenticated())
                                 .formLogin(Customizer.withDefaults());
 
@@ -94,7 +96,7 @@ public class SecurityConfig {
         @Bean
         protected RegisteredClientRepository registeredClientRepository() {
                 RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("oauth-client")
+                                .clientId(ClientRegistrationId.OAUTH2_CLIENT.toString())
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -111,15 +113,7 @@ public class SecurityConfig {
                                                 .build())
                                 .build();
 
-                RegisteredClient profileClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("profile-client")
-                                .clientSecret("{noop}kuz54zf6vkjuh64v")
-                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                                .scopes(scopes -> scopes.addAll(List.of(OidcScopes.OPENID)))
-                                .build();
-
-                return new InMemoryRegisteredClientRepository(oauthClient, profileClient);
+                return new InMemoryRegisteredClientRepository(oauthClient);
         }
 
         @Bean

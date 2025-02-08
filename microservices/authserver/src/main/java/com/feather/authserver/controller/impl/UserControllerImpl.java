@@ -1,6 +1,7 @@
 package com.feather.authserver.controller.impl;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +22,7 @@ public class UserControllerImpl implements UserController {
     private final UserService userService;
 
     @Override
+    @PostMapping("/public")
     public ResponseEntity<ResponseUserDto> createUser(@Valid CreateUserDto createUserDto) {
         return userService.createUser(createUserDto, FeatherRole.ROLE_USER);
     }
