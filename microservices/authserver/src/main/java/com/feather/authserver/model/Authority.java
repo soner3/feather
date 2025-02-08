@@ -15,19 +15,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "Feather-Authority")
 @EqualsAndHashCode(callSuper = false)
-@ToString
+@Data
 @NoArgsConstructor
-@Getter
-@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class Authority extends AuditEntity {
 

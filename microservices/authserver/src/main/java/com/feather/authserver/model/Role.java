@@ -20,19 +20,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Entity
 @Table(name = "Feather-Role")
 @EqualsAndHashCode(callSuper = false)
-@ToString
+@Data
 @NoArgsConstructor
-@Getter
-@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class Role extends AuditEntity {
 
