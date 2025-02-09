@@ -1,4 +1,4 @@
-package com.feather.authserver.exception;
+package com.feather.lib.exception;
 
 public class CompromisedPasswordException extends RuntimeException {
 

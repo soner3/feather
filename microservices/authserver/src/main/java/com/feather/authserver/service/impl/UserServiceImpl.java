@@ -14,7 +14,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.feather.authserver.exception.CompromisedPasswordException;
 import com.feather.authserver.model.Authority;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.model.Role;
@@ -24,6 +23,8 @@ import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
 import com.feather.lib.dto.user.CreateUserDto;
 import com.feather.lib.dto.user.ResponseUserDto;
+import com.feather.lib.exception.AlreadyExistsException;
+import com.feather.lib.exception.CompromisedPasswordException;
 import com.feather.lib.exception.NotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public ResponseEntity<ResponseUserDto> createUser(CreateUserDto createUserDto, FeatherRole role) {
-        checkPassword(createUserDto.password());
+        validateCredentials(createUserDto);
         Role userRole;
 
         switch (role) {
@@ -105,6 +106,21 @@ public class UserServiceImpl implements UserService {
         if (passwordDecision.isCompromised()) {
             throw new CompromisedPasswordException(
                     "The giving password:" + password + " is compromised, enter a stronger password");
+        }
+    }
+
+    private void validateCredentials(CreateUserDto createUserDto) {
+        checkPassword(createUserDto.password());
+        if (userRepository.existsByEmail(createUserDto.email())) {
+            throw new AlreadyExistsException("User with this email already exists");
+        }
+
+        if (userRepository.existsByUsername(createUserDto.username())) {
+            throw new AlreadyExistsException("User with this username already exists");
+        }
+
+        if (userRepository.existsByPhoneNumber(createUserDto.phoneNumber())) {
+            throw new AlreadyExistsException("User with this phonenumber already exists");
         }
     }
 

@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feather.authserver.controller.UserController;
-import com.feather.authserver.exception.CompromisedPasswordException;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.service.UserService;
 import com.feather.lib.dto.user.CreateUserDto;
 import com.feather.lib.dto.user.ResponseUserDto;
+import com.feather.lib.exception.CompromisedPasswordException;
 import com.feather.lib.util.HttpErrorInfo;
 
 import jakarta.validation.Valid;

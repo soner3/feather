@@ -15,7 +15,7 @@ public class SecurityConfig {
         protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests((authorize) -> authorize
-                                                .requestMatchers("/v1/profile/public").permitAll()
+                                                .requestMatchers("/**/public").permitAll()
                                                 .anyRequest().authenticated())
                                 .csrf(t -> t.disable())
                                 .oauth2ResourceServer((oauth2) -> oauth2

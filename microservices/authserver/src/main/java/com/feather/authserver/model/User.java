@@ -39,7 +39,7 @@ public class User extends AuditEntity {
     @Column(unique = true)
     private String username;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Column(name = "first_name")
