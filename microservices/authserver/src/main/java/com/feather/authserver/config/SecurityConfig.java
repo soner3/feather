@@ -88,6 +88,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers("/v1/user/public").permitAll()
                                                 .anyRequest().authenticated())
+                                .csrf(t -> t.disable())
                                 .formLogin(Customizer.withDefaults());
 
                 return http.build();

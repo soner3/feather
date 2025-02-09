@@ -45,18 +45,13 @@ public class Profile extends AuditEntity {
 
     private String plz;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Column(name = "user_id", nullable = false, unique = true)
+    private UUID userId;
 
     @OneToOne(mappedBy = "profile", cascade = CascadeType.REMOVE)
     private ProfileMeta profileMeta;
 
-    public Profile(Gender gender, String country, String city, String street, String plz, String userId) {
-        this.gender = gender;
-        this.country = country;
-        this.city = city;
-        this.street = street;
-        this.plz = plz;
+    public Profile(UUID userId) {
         this.userId = userId;
     }
 

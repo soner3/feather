@@ -3,10 +3,13 @@ package com.feather.profile.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import com.feather.lib.model.AuditEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,6 +25,7 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class ProfileMeta extends AuditEntity {
 
     @Id
@@ -38,5 +42,9 @@ public class ProfileMeta extends AuditEntity {
     @OneToOne
     @JoinColumn(name = "profile_id", nullable = false, unique = true)
     private Profile profile;
+
+    public ProfileMeta(Profile profile) {
+        this.profile = profile;
+    }
 
 }

@@ -1,10 +1,13 @@
 package com.feather.lib.dto.user;
 
+import java.util.UUID;
+
 public record ResponseUserDto(
-        String email,
-        String username,
-        String phoneNumber,
-        String firstName,
-        String lastName) {
+                UUID id,
+                String email,
+                String username,
+                String phoneNumber,
+                String firstName,
+                String lastName) {
 
 }
