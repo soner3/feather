@@ -17,7 +17,7 @@ public class MysqlAuditAware implements AuditorAware<String> {
         if (authentication instanceof JwtAuthenticationToken) {
             Optional.of(authentication.getName());
         }
-        return Optional.of("Anonym");
+        return Optional.of("System-User");
     }
 
 }

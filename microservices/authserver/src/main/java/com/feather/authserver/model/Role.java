@@ -46,11 +46,6 @@ public class Role extends AuditEntity {
     @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<User> users = new HashSet<>();
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<Authority> authorities = new HashSet<>();
-
     public Role(FeatherRole name) {
         this.name = name;
     }

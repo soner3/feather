@@ -14,7 +14,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.feather.authserver.model.Authority;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.model.Role;
 import com.feather.authserver.model.User;
@@ -43,10 +42,6 @@ public class UserServiceImpl implements UserService {
     public Collection<? extends GrantedAuthority> loadAuthorities(User user) {
         Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
         Role role = user.getRole();
-        Set<Authority> authorities = role.getAuthorities();
-        for (Authority authority : authorities) {
-            grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
-        }
 
         grantedAuthorities.add(new SimpleGrantedAuthority(role.getName().toString()));
 
@@ -70,19 +65,19 @@ public class UserServiceImpl implements UserService {
 
         switch (role) {
             case ROLE_ADMIN:
-                userRole = getRole(FeatherRole.ROLE_ADMIN);
+                userRole = loadRoleFromUser(FeatherRole.ROLE_ADMIN);
                 break;
 
             case ROLE_STAFF:
-                userRole = getRole(FeatherRole.ROLE_STAFF);
+                userRole = loadRoleFromUser(FeatherRole.ROLE_STAFF);
                 break;
 
             case ROLE_USER:
-                userRole = getRole(FeatherRole.ROLE_USER);
+                userRole = loadRoleFromUser(FeatherRole.ROLE_USER);
                 break;
 
             default:
-                userRole = getRole(FeatherRole.ROLE_USER);
+                userRole = loadRoleFromUser(FeatherRole.ROLE_USER);
                 break;
         }
 
@@ -96,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private Role getRole(FeatherRole role) {
+    private Role loadRoleFromUser(FeatherRole role) {
         return roleRepository.findByName(role)
                 .orElseThrow(() -> new NotFoundException("Role not found for name: " + role.toString()));
     }

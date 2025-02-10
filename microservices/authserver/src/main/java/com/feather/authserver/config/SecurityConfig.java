@@ -96,25 +96,25 @@ public class SecurityConfig {
 
         @Bean
         protected RegisteredClientRepository registeredClientRepository() {
-                RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
                                 .clientId(ClientRegistrationId.OAUTH2_CLIENT.toString())
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                                 .redirectUri("https://oauth.pstmn.io/v1/vscode-callback")
-                                .postLogoutRedirectUri("http://127.0.0.1:9090/")
+                                .postLogoutRedirectUri("http://127.0.0.1:9000/")
                                 .scope(OidcScopes.OPENID)
                                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                                 .tokenSettings(TokenSettings
                                                 .builder()
-                                                .accessTokenTimeToLive(Duration.ofMinutes(5))
+                                                .accessTokenTimeToLive(Duration.ofMinutes(1))
                                                 .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                                                .refreshTokenTimeToLive(Duration.ofDays(1))
+                                                .refreshTokenTimeToLive(Duration.ofMinutes(2))
                                                 .reuseRefreshTokens(false)
                                                 .build())
                                 .build();
 
-                return new InMemoryRegisteredClientRepository(oauthClient);
+                return new InMemoryRegisteredClientRepository(oauth2Client);
         }
 
         @Bean
@@ -142,19 +142,6 @@ public class SecurityConfig {
                 return keyPair;
         }
 
-        // @Bean
-        // protected CorsConfigurationSource corsConfigurationSource() {
-        // UrlBasedCorsConfigurationSource source = new
-        // UrlBasedCorsConfigurationSource();
-        // CorsConfiguration config = new CorsConfiguration();
-        // config.addAllowedHeader("*");
-        // config.addAllowedMethod("*");
-        // config.addAllowedOrigin("http://localhost:8080");
-        // config.setAllowCredentials(true);
-        // source.registerCorsConfiguration("/**", config);
-        // return source;
-        // }
-
         @Bean
         protected JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
                 return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
@@ -174,21 +161,16 @@ public class SecurityConfig {
                                         OidcUserInfo oidcUserInfo = oidcUserInfoService
                                                         .loadUser((String) claims.get("sub"));
                                         claims.putAll(oidcUserInfo.getClaims());
-                                        if (context.getAuthorizationGrantType()
-                                                        .equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
-                                                Set<String> roles = context.getClaims().build().getClaim("scope");
-                                                claims.put("roles", roles);
-                                        } else if (context.getAuthorizationGrantType()
-                                                        .equals(AuthorizationGrantType.AUTHORIZATION_CODE)) {
-                                                Set<String> roles = AuthorityUtils
-                                                                .authorityListToSet(
-                                                                                context.getPrincipal().getAuthorities())
-                                                                .stream()
-                                                                .collect(Collectors.collectingAndThen(
-                                                                                Collectors.toSet(),
-                                                                                Collections::unmodifiableSet));
-                                                claims.put("roles", roles);
-                                        }
+
+                                        Set<String> roles = AuthorityUtils
+                                                        .authorityListToSet(
+                                                                        context.getPrincipal().getAuthorities())
+                                                        .stream()
+                                                        .collect(Collectors.collectingAndThen(
+                                                                        Collectors.toSet(),
+                                                                        Collections::unmodifiableSet));
+                                        claims.put("roles", roles);
+
                                 });
                         }
                 };

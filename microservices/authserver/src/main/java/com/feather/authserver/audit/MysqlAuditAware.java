@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 
 import com.feather.authserver.config.user.UserDetailsImpl;
@@ -18,8 +19,11 @@ public class MysqlAuditAware implements AuditorAware<String> {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             return Optional.of(userDetails.getUserId());
+        } else if (authentication != null && authentication.getPrincipal() instanceof OidcUser) {
+            OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
+            Optional.of(oidcUser.getSubject());
         }
-        return Optional.of("Anonym");
+        return Optional.of("System-User");
     }
 
 }
