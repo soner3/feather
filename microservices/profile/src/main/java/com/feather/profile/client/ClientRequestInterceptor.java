@@ -38,7 +38,7 @@ public class ClientRequestInterceptor implements ClientHttpRequestInterceptor {
             log.info("Successfully extracted JWT: {}", token);
             return token;
         }
-        log.warn("No user is currently logged in");
+        log.info("No user is currently logged in");
         return "";
     }
 
