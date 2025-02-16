@@ -17,6 +17,7 @@ public class SecurityConfig {
                 .authorizeExchange((authorize) -> authorize
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/feather/profile/v1/profile/public").permitAll()
+                        .pathMatchers("/feather/authserver/**").permitAll()
                         .pathMatchers("/feather/**").authenticated()
                         .pathMatchers("/**").permitAll()
                         .anyExchange().authenticated())
