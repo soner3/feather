@@ -4,11 +4,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,41 +15,34 @@ import org.springframework.security.authentication.password.CompromisedPasswordC
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
-import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.feather.authserver.config.user.OidcUserInfoService;
-import com.feather.authserver.service.UserService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -60,8 +50,7 @@ public class SecurityConfig {
 
         @Bean
         @Order(1)
-        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,
-                        OidcUserInfoService oidcUserInfoService)
+        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
                         throws Exception {
 
                 OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
@@ -92,34 +81,14 @@ public class SecurityConfig {
                                                 .requestMatchers("/v1/user/public").permitAll()
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .anyRequest().authenticated())
+                                .csrf((csrf) -> csrf
+                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                                 .csrf(t -> t.disable())
                                 .cors(Customizer.withDefaults())
                                 .formLogin(Customizer.withDefaults());
 
                 return http.build();
-        }
-
-        @Bean
-        protected RegisteredClientRepository registeredClientRepository() {
-                RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("NEXT_CLIENT")
-                                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                                .redirectUri("https://oauth.pstmn.io/v1/vscode-callback")
-                                .postLogoutRedirectUri("http://127.0.0.1:9000/")
-                                .scope(OidcScopes.OPENID)
-                                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
-                                .tokenSettings(TokenSettings
-                                                .builder()
-                                                .accessTokenTimeToLive(Duration.ofMinutes(1))
-                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                                                .refreshTokenTimeToLive(Duration.ofMinutes(2))
-                                                .reuseRefreshTokens(false)
-                                                .build())
-                                .build();
-
-                return new InMemoryRegisteredClientRepository(oauth2Client);
         }
 
         @Bean
@@ -169,29 +138,30 @@ public class SecurityConfig {
                 return AuthorizationServerSettings.builder().build();
         }
 
-        @Bean
-        protected OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService,
-                        OidcUserInfoService oidcUserInfoService) {
-                return (context) -> {
-                        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-                                context.getClaims().claims((claims) -> {
-                                        OidcUserInfo oidcUserInfo = oidcUserInfoService
-                                                        .loadUser((String) claims.get("sub"));
-                                        claims.putAll(oidcUserInfo.getClaims());
+        // @Bean
+        // protected OAuth2TokenCustomizer<JwtEncodingContext>
+        // tokenCustomizer(UserService userService,
+        // OidcUserInfoService oidcUserInfoService) {
+        // return (context) -> {
+        // if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+        // context.getClaims().claims((claims) -> {
+        // OidcUserInfo oidcUserInfo = oidcUserInfoService
+        // .loadUser((String) claims.get("sub"));
+        // claims.putAll(oidcUserInfo.getClaims());
 
-                                        Set<String> roles = AuthorityUtils
-                                                        .authorityListToSet(
-                                                                        context.getPrincipal().getAuthorities())
-                                                        .stream()
-                                                        .collect(Collectors.collectingAndThen(
-                                                                        Collectors.toSet(),
-                                                                        Collections::unmodifiableSet));
-                                        claims.put("roles", roles);
+        // Set<String> roles = AuthorityUtils
+        // .authorityListToSet(
+        // context.getPrincipal().getAuthorities())
+        // .stream()
+        // .collect(Collectors.collectingAndThen(
+        // Collectors.toSet(),
+        // Collections::unmodifiableSet));
+        // claims.put("roles", roles);
 
-                                });
-                        }
-                };
-        }
+        // });
+        // }
+        // };
+        // }
 
         @Bean
         protected PasswordEncoder passwordEncoder() {
@@ -201,6 +171,28 @@ public class SecurityConfig {
         @Bean
         protected CompromisedPasswordChecker passwordChecker() {
                 return new HaveIBeenPwnedRestApiPasswordChecker();
+        }
+
+        final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+                private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+                private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
+
+                @Override
+                public void handle(HttpServletRequest request, HttpServletResponse response,
+                                Supplier<CsrfToken> csrfToken) {
+
+                        this.xor.handle(request, response, csrfToken);
+
+                        csrfToken.get();
+                }
+
+                @Override
+                public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+                        String headerValue = request.getHeader(csrfToken.getHeaderName());
+                        return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
+                                        csrfToken);
+                }
+
         }
 
 }

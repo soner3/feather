@@ -15,31 +15,34 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InitilaizeData implements CommandLineRunner {
 
-    private final RoleRepository roleRepository;
-    private final UserService userService;
+        private final RoleRepository roleRepository;
+        private final UserService userService;
 
-    @Override
-    public void run(String... args) throws Exception {
-        if (!roleRepository.existsByName(FeatherRole.ROLE_ADMIN)) {
-            roleRepository.save(new Role(FeatherRole.ROLE_ADMIN));
-            roleRepository.save(new Role(FeatherRole.ROLE_STAFF));
-            roleRepository.save(new Role(FeatherRole.ROLE_USER));
+        @Override
+        public void run(String... args) throws Exception {
 
-            userService.createUser(
-                    new CreateUserDto("admin@example.com", "admin", "+1234567890", "Admin", "User",
-                            "Adm!n$@1234"),
-                    FeatherRole.ROLE_ADMIN);
+                if (!roleRepository.existsByName(FeatherRole.ROLE_ADMIN)) {
+                        roleRepository.save(new Role(FeatherRole.ROLE_ADMIN));
+                        roleRepository.save(new Role(FeatherRole.ROLE_STAFF));
+                        roleRepository.save(new Role(FeatherRole.ROLE_USER));
 
-            userService.createUser(
-                    new CreateUserDto("staff@example.com", "staff", "+1987654321", "Staff", "User", "St@ff!4321"),
-                    FeatherRole.ROLE_STAFF);
+                        userService.createUser(
+                                        new CreateUserDto("admin@example.com", "admin", "+1234567890", "Admin", "User",
+                                                        "Adm!n$@1234"),
+                                        FeatherRole.ROLE_ADMIN);
 
-            userService.createUser(
-                    new CreateUserDto("user@example.com", "user", "+1122334455", "Normal", "User", "Us3rst!r0ng!"),
-                    FeatherRole.ROLE_USER);
+                        userService.createUser(
+                                        new CreateUserDto("staff@example.com", "staff", "+1987654321", "Staff", "User",
+                                                        "St@ff!4321"),
+                                        FeatherRole.ROLE_STAFF);
+
+                        userService.createUser(
+                                        new CreateUserDto("user@example.com", "user", "+1122334455", "Normal", "User",
+                                                        "Us3rst!r0ng!"),
+                                        FeatherRole.ROLE_USER);
+
+                }
 
         }
-
-    }
 
 }
