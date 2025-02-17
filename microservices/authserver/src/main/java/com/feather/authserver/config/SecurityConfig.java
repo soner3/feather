@@ -48,7 +48,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
 import com.feather.authserver.service.UserService;
-import com.feather.lib.util.ClientRegistrationId;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -103,8 +102,7 @@ public class SecurityConfig {
         @Bean
         protected RegisteredClientRepository registeredClientRepository() {
                 RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId(ClientRegistrationId.OAUTH2_CLIENT.toString())
-                                .clientSecret("{noop}secret")
+                                .clientId("NEXT_CLIENT")
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
