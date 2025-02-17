@@ -14,6 +14,10 @@ public interface TokenService {
 
     boolean validateRefreshToken(String token);
 
+    long extractTokenExpiration(String token);
+
     String extractTokenFromHeader(HttpServletRequest httpServletRequest);
+
+    String extractTokenSubject(String token);
 
 }

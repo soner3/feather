@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.stereotype.Service;
 
 import com.feather.authserver.config.user.UserDetailsImpl;
 import com.feather.authserver.service.TokenService;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
+@Service
 public class TokenServiceImpl implements TokenService {
 
     private final JwtEncoder jwtEncoder;
@@ -114,6 +116,25 @@ public class TokenServiceImpl implements TokenService {
             return maybeToken.substring(BEARER.length());
         }
         return null;
+    }
+
+    @Override
+    public long extractTokenExpiration(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        Instant expiresAt = jwt.getExpiresAt();
+        long secondsLeft = Duration.between(Instant.now(), expiresAt).getSeconds();
+        return secondsLeft > 0 ? secondsLeft : 0;
+    }
+
+    @Override
+    public String extractTokenSubject(String token) {
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            return jwt.getSubject();
+        } catch (JwtException ex) {
+            log.warn("Invalid refresh token: {}", ex.getMessage());
+            throw new BadCredentialsException("Invalid Refresh Token", ex);
+        }
     }
 
 }

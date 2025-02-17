@@ -11,13 +11,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -79,6 +88,7 @@ public class SecurityConfig {
 
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers("/v1/user/public").permitAll()
+                                                .requestMatchers("/v1/token/**").permitAll()
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .csrf((csrf) -> csrf
@@ -134,34 +144,14 @@ public class SecurityConfig {
         }
 
         @Bean
+        protected JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
+                return new NimbusJwtEncoder(jwkSource);
+        }
+
+        @Bean
         protected AuthorizationServerSettings authorizationServerSettings() {
                 return AuthorizationServerSettings.builder().build();
         }
-
-        // @Bean
-        // protected OAuth2TokenCustomizer<JwtEncodingContext>
-        // tokenCustomizer(UserService userService,
-        // OidcUserInfoService oidcUserInfoService) {
-        // return (context) -> {
-        // if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-        // context.getClaims().claims((claims) -> {
-        // OidcUserInfo oidcUserInfo = oidcUserInfoService
-        // .loadUser((String) claims.get("sub"));
-        // claims.putAll(oidcUserInfo.getClaims());
-
-        // Set<String> roles = AuthorityUtils
-        // .authorityListToSet(
-        // context.getPrincipal().getAuthorities())
-        // .stream()
-        // .collect(Collectors.collectingAndThen(
-        // Collectors.toSet(),
-        // Collections::unmodifiableSet));
-        // claims.put("roles", roles);
-
-        // });
-        // }
-        // };
-        // }
 
         @Bean
         protected PasswordEncoder passwordEncoder() {
@@ -171,6 +161,12 @@ public class SecurityConfig {
         @Bean
         protected CompromisedPasswordChecker passwordChecker() {
                 return new HaveIBeenPwnedRestApiPasswordChecker();
+        }
+
+        @Bean
+        AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+                        throws Exception {
+                return authenticationConfiguration.getAuthenticationManager();
         }
 
         final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
@@ -193,6 +189,22 @@ public class SecurityConfig {
                                         csrfToken);
                 }
 
+        }
+
+        @Bean
+        protected RegisteredClientRepository registeredClientRepository() {
+                RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("client")
+                                .clientSecret("{noop}secret")
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("http://localhost:8080/login/oauth2/code/client-oidc")
+                                .scope("read")
+                                .scope("write")
+                                .build();
+
+                return new InMemoryRegisteredClientRepository(registeredClient);
         }
 
 }
