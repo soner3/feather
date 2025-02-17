@@ -42,6 +42,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.feather.authserver.config.user.OidcUserInfoService;
 import com.feather.authserver.service.UserService;
@@ -71,6 +74,7 @@ public class SecurityConfig {
                                                 .oidc(Customizer.withDefaults()))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
+                                .cors(Customizer.withDefaults())
                                 .exceptionHandling((exceptions) -> exceptions
                                                 .defaultAuthenticationEntryPointFor(
                                                                 new LoginUrlAuthenticationEntryPoint("/login"),
@@ -90,6 +94,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .csrf(t -> t.disable())
+                                .cors(Customizer.withDefaults())
                                 .formLogin(Customizer.withDefaults());
 
                 return http.build();
@@ -99,6 +104,7 @@ public class SecurityConfig {
         protected RegisteredClientRepository registeredClientRepository() {
                 RegisteredClient oauth2Client = RegisteredClient.withId(UUID.randomUUID().toString())
                                 .clientId(ClientRegistrationId.OAUTH2_CLIENT.toString())
+                                .clientSecret("{noop}secret")
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -116,6 +122,18 @@ public class SecurityConfig {
                                 .build();
 
                 return new InMemoryRegisteredClientRepository(oauth2Client);
+        }
+
+        @Bean
+        protected CorsConfigurationSource corsConfigurationSource() {
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                CorsConfiguration config = new CorsConfiguration();
+                config.addAllowedHeader("*");
+                config.addAllowedMethod("*");
+                config.addAllowedOrigin("http://localhost:8000");
+                config.setAllowCredentials(true);
+                source.registerCorsConfiguration("/**", config);
+                return source;
         }
 
         @Bean

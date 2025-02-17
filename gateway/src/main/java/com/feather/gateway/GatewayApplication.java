@@ -17,10 +17,6 @@ public class GatewayApplication {
 	protected RouteLocator routeLocator(RouteLocatorBuilder routeLocatorBuilder) {
 		return routeLocatorBuilder.routes()
 				.route(r -> r
-						.path("/feather/authserver/**")
-						.filters(f -> f.rewritePath("/feather/authserver/(?<segment>.*)", "${segment}"))
-						.uri("http://localhost:9000"))
-				.route(r -> r
 						.path("/feather/profile/**")
 						.filters(f -> f.rewritePath("/feather/profile/(?<segment>.*)", "/${segment}"))
 						.uri("http://localhost:8080"))
