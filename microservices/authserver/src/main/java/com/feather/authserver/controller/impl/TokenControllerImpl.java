@@ -1,5 +1,7 @@
 package com.feather.authserver.controller.impl;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,10 @@ import com.feather.lib.dto.token.LoginRequestDto;
 import com.feather.lib.dto.token.LoginResponseDto;
 import com.feather.lib.dto.token.RefreshResponseDto;
 import com.feather.lib.util.HttpErrorInfo;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +35,17 @@ import lombok.RequiredArgsConstructor;
 public class TokenControllerImpl implements TokenController {
 
     private final TokenControllerService tokenControllerService;
+    private final JWKSource<SecurityContext> jwkSource;
 
     @Override
-    @GetMapping("/csrf")
-    public ResponseEntity<Void> csrf() {
-        return ResponseEntity.noContent().build();
+    @GetMapping("/jwk")
+    public ResponseEntity<Map<String, Object>> jwk() {
+         if (jwkSource instanceof ImmutableJWKSet) {
+            JWKSet jwkSet = ((ImmutableJWKSet<SecurityContext>) jwkSource).getJWKSet();
+            Map<String, Object> jwkJson = jwkSet.toJSONObject();
+            return ResponseEntity.ok(jwkJson);
+        }
+        return ResponseEntity.internalServerError().build();
     }
 
     @Override

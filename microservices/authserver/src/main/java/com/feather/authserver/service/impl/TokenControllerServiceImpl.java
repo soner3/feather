@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import com.feather.authserver.config.user.UserDetailsImpl;
@@ -47,7 +48,8 @@ public class TokenControllerServiceImpl implements TokenControllerService {
 
     @Override
     public ResponseEntity<RefreshResponseDto> processRefresh(String refreshToken) {
-        String username = tokenService.extractTokenSubject(refreshToken);
+        Jwt jwt = tokenService.validateRefreshToken(refreshToken);
+        String username = jwt.getSubject();
         UserDetailsImpl userDetailsImpl = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
 
         String newRefreshToken = tokenService.createRefreshToken(userDetailsImpl);

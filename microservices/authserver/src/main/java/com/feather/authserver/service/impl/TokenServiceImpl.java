@@ -4,17 +4,16 @@ import java.time.Duration;
 import java.time.Instant;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
 import com.feather.authserver.config.user.UserDetailsImpl;
+import com.feather.authserver.exception.IllegalJwtTokenTypeException;
 import com.feather.authserver.service.TokenService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +28,7 @@ public class TokenServiceImpl implements TokenService {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private static final String TOKEN_TYPE = "TOKEN_TYPE";
-    private static final String BEARER = "BEARER ";
+    private static final String BEARER = "Bearer ";
 
     public enum TokenType {
         ACCESS_TOKEN,
@@ -82,33 +81,24 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public boolean validateAccessToken(String token) {
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            String tokenType = jwt.getClaim(TOKEN_TYPE);
-            if (!TokenType.ACCESS_TOKEN.toString().equals(tokenType)) {
-                throw new BadCredentialsException("Invalid token type");
-            }
-            return true;
-        } catch (JwtException ex) {
-            log.warn("Invalid access token: {}", ex.getMessage());
-            throw new BadCredentialsException("Invalid Token", ex);
+    public Jwt validateAccessToken(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        String tokenType = jwt.getClaim(TOKEN_TYPE);
+        if (!TokenType.ACCESS_TOKEN.toString().equals(tokenType)) {
+            throw new IllegalJwtTokenTypeException("Invalid token type");
         }
+        return jwt;
+
     }
 
     @Override
-    public boolean validateRefreshToken(String token) {
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            String tokenType = jwt.getClaim(TOKEN_TYPE);
-            if (!TokenType.REFRESH_TOKEN.toString().equals(tokenType)) {
-                throw new BadCredentialsException("Invalid refresh token type");
-            }
-            return true;
-        } catch (JwtException ex) {
-            log.warn("Invalid refresh token: {}", ex.getMessage());
-            throw new BadCredentialsException("Invalid Refresh Token", ex);
+    public Jwt validateRefreshToken(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        String tokenType = jwt.getClaim(TOKEN_TYPE);
+        if (!TokenType.REFRESH_TOKEN.toString().equals(tokenType)) {
+            throw new IllegalJwtTokenTypeException("Invalid refresh token type");
         }
+        return jwt;
     }
 
     @Override
@@ -126,17 +116,6 @@ public class TokenServiceImpl implements TokenService {
         Instant expiresAt = jwt.getExpiresAt();
         long secondsLeft = Duration.between(Instant.now(), expiresAt).getSeconds();
         return secondsLeft > 0 ? secondsLeft : 0;
-    }
-
-    @Override
-    public String extractTokenSubject(String token) {
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            return jwt.getSubject();
-        } catch (JwtException ex) {
-            log.warn("Invalid refresh token: {}", ex.getMessage());
-            throw new BadCredentialsException("Invalid Refresh Token", ex);
-        }
     }
 
 }

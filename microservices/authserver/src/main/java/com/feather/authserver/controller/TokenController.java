@@ -1,5 +1,7 @@
 package com.feather.authserver.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +15,7 @@ import jakarta.validation.Valid;
 
 public interface TokenController {
 
-    public ResponseEntity<Void> csrf();
+    public ResponseEntity<Map<String, Object>> jwk();
 
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid LoginRequestDto loginRequestDto);
 
