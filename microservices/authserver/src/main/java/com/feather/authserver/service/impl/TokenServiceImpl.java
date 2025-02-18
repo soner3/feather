@@ -45,19 +45,21 @@ public class TokenServiceImpl implements TokenService {
                 .issuedAt(Instant.now())
                 .claims(
                         claimsConfig -> {
-                            claimsConfig.putAll(OidcUserInfo.builder()
-                                    .subject(userDetailsImpl.getUserId())
-                                    .email(userDetailsImpl.getEmail())
-                                    .phoneNumber(userDetailsImpl.getPhoneNumber())
-                                    .preferredUsername(userDetailsImpl.getUsername())
-                                    .givenName(userDetailsImpl.getFirstName())
-                                    .familyName(userDetailsImpl.getLastName())
-                                    .build()
-                                    .getClaims());
+                            claimsConfig.putAll(
+                                    OidcUserInfo
+                                            .builder()
+                                            .subject(userDetailsImpl.getUserId())
+                                            .email(userDetailsImpl.getEmail())
+                                            .phoneNumber(userDetailsImpl.getPhoneNumber())
+                                            .preferredUsername(userDetailsImpl.getUsername())
+                                            .givenName(userDetailsImpl.getFirstName())
+                                            .familyName(userDetailsImpl.getLastName())
+                                            .build()
+                                            .getClaims());
+                            claimsConfig.put("roles", userDetailsImpl.getAuthorities());
+                            claimsConfig.put(TOKEN_TYPE, TokenType.ACCESS_TOKEN);
                         })
-                .claim("roles", userDetailsImpl.getAuthorities())
                 .expiresAt(Instant.now().plus(Duration.ofMinutes(1)))
-                .claim(TOKEN_TYPE, TokenType.ACCESS_TOKEN)
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
