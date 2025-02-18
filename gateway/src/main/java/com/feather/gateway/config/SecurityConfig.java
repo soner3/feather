@@ -22,10 +22,12 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/feather/profile/v1/profile/public").permitAll()
                         .pathMatchers("/feather/authserver/**").permitAll()
+                        .pathMatchers("/v1/csrf").permitAll()
                         .pathMatchers("/feather/**").authenticated()
                         .pathMatchers("/**").permitAll()
                         .anyExchange().authenticated())
                 .csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()))
+                .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
                 .oauth2ResourceServer((oauth2) -> oauth2
                         .jwt(Customizer.withDefaults()));
         return http.build();
