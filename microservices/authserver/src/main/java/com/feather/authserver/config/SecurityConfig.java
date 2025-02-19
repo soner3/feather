@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
@@ -60,6 +61,7 @@ public class SecurityConfig {
         // .oidc(Customizer.withDefaults()))
         // .authorizeHttpRequests((authorize) -> authorize
         // .anyRequest().authenticated())
+        // .cors(Customizer.withDefaults())
         // .exceptionHandling((exceptions) -> exceptions
         // .defaultAuthenticationEntryPointFor(
         // new LoginUrlAuthenticationEntryPoint("/login"),
@@ -69,7 +71,7 @@ public class SecurityConfig {
         // }
 
         @Bean
-        @Order(1)
+        @Order(2)
         protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http,
                         TokenAuthenticationFilter tokenAuthenticationFilter)
                         throws Exception {
@@ -82,11 +84,13 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
-                                .csrf(t -> t.disable())
+                                // .cors(Customizer.withDefaults())
+                                // .csrf(t -> t.disable())
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint(tokenAuthEntryPoint))
-                                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(tokenAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
                                 .httpBasic(httpConfig -> httpConfig.disable())
-                                // .formLogin(Customizer.withDefaults())
+                                // .formLogin(Customizer.withDefaults());
                                 .formLogin(formConfig -> formConfig.disable());
 
                 return http.build();
@@ -177,14 +181,14 @@ public class SecurityConfig {
                 return authenticationConfiguration.getAuthenticationManager();
         }
 
-        // @Bean
-        // protected AuthorizationServerSettings authorizationServerSettings() {
-        // return AuthorizationServerSettings.builder().build();
-        // }
+        @Bean
+        protected AuthorizationServerSettings authorizationServerSettings() {
+                return AuthorizationServerSettings.builder().build();
+        }
 
         // @Bean
-        // protected OAuth2TokenCustomizer<JwtEncodingContext>
-        // jwtTokenCustomizer(OidcUserInfoService oidcUserInfoService) {
+        // protected OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(
+        // OidcUserInfoService oidcUserInfoService) {
         // return (context) -> {
 
         // if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
