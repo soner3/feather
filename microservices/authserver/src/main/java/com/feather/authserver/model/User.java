@@ -33,34 +33,35 @@ public class User extends AuditEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(name = "phone_number", unique = true)
+    @Column(name = "phone_number", unique = true, nullable = false)
     private String phoneNumber;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @ToString.Exclude
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_account_non_expired")
+    @Column(name = "is_account_non_expired", nullable = false)
     private boolean isAccountNonExpired;
 
-    @Column(name = "is_account_non_locked")
+    @Column(name = "is_account_non_locked", nullable = false)
     private boolean isAccountNonLocked;
 
-    @Column(name = "is_credentials_non_expired")
+    @Column(name = "is_credentials_non_expired", nullable = false)
     private boolean isCredentialsNonExpired;
 
-    @Column(name = "is_enabled")
+    @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled;
 
     @ManyToOne

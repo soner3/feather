@@ -1,3 +1,4 @@
+import AuthenticationProvider from "@/components/AuthenticationProvider";
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
 
@@ -9,7 +10,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <StoreProvider>{children}</StoreProvider>
+        <AuthenticationProvider>
+          <StoreProvider>{children}</StoreProvider>
+        </AuthenticationProvider>
       </body>
     </html>
   );

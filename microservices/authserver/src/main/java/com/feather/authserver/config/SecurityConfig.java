@@ -4,32 +4,48 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.feather.authserver.filter.TokenAuthenticationFilter;
+import com.feather.authserver.config.user.OidcUserInfoService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -43,80 +59,39 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-        private final TokenAuthEntryPoint tokenAuthEntryPoint;
+        @Bean
+        @Order(1)
+        protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+                        throws Exception {
+                OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer
+                                .authorizationServer();
 
-        // @Bean
-        // @Order(1)
-        // protected SecurityFilterChain
-        // authorizationServerSecurityFilterChain(HttpSecurity http)
-        // throws Exception {
-        // OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-        // OAuth2AuthorizationServerConfigurer
-        // .authorizationServer();
+                http
+                                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+                                .with(authorizationServerConfigurer, (authorizationServer) -> authorizationServer
+                                                .oidc(Customizer.withDefaults()))
+                                .authorizeHttpRequests((authorize) -> authorize
+                                                .anyRequest().authenticated())
+                                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                                .exceptionHandling((exceptions) -> exceptions
+                                                .defaultAuthenticationEntryPointFor(
+                                                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
-        // http
-        // .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-        // .with(authorizationServerConfigurer, (authorizationServer) ->
-        // authorizationServer
-        // .oidc(Customizer.withDefaults()))
-        // .authorizeHttpRequests((authorize) -> authorize
-        // .anyRequest().authenticated())
-        // .cors(Customizer.withDefaults())
-        // .exceptionHandling((exceptions) -> exceptions
-        // .defaultAuthenticationEntryPointFor(
-        // new LoginUrlAuthenticationEntryPoint("/login"),
-        // new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
-
-        // return http.build();
-        // }
+                return http.cors(Customizer.withDefaults()).build();
+        }
 
         @Bean
         @Order(2)
-        protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http,
-                        TokenAuthenticationFilter tokenAuthenticationFilter)
+        protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
                                 .authorizeHttpRequests((authorize) -> authorize
-                                                .requestMatchers("/v1/user/public").permitAll()
-                                                .requestMatchers("/v1/token/**").permitAll()
-                                                .requestMatchers("/actuator/**").permitAll()
                                                 .anyRequest().authenticated())
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
-                                // .cors(Customizer.withDefaults())
-                                // .csrf(t -> t.disable())
-                                .exceptionHandling(exception -> exception.authenticationEntryPoint(tokenAuthEntryPoint))
-                                .addFilterBefore(tokenAuthenticationFilter,
-                                                UsernamePasswordAuthenticationFilter.class)
-                                .httpBasic(httpConfig -> httpConfig.disable())
-                                // .formLogin(Customizer.withDefaults());
-                                .formLogin(formConfig -> formConfig.disable());
+                                .formLogin(Customizer.withDefaults());
 
-                return http.build();
+                return http.cors(Customizer.withDefaults()).build();
         }
-
-        // @Bean
-        // protected RegisteredClientRepository registeredClientRepository() {
-        // RegisteredClient oidcClient =
-        // RegisteredClient.withId(UUID.randomUUID().toString())
-        // .clientId("oidc-client")
-        // .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-        // .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-        // .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-        // .redirectUri("http://localhost:8000/callback")
-        // .postLogoutRedirectUri("http://localhost:8000/")
-        // .scope(OidcScopes.OPENID)
-        // .scope(OidcScopes.PROFILE)
-        // .scope(OidcScopes.EMAIL)
-        // .clientSettings(ClientSettings.builder().requireProofKey(true).build())
-        // .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
-        // .refreshTokenTimeToLive(Duration.ofHours(8)).reuseRefreshTokens(false)
-        // .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
-        // .build();
-
-        // return new InMemoryRegisteredClientRepository(oidcClient);
-        // }
 
         @Bean
         protected CorsConfigurationSource corsConfigurationSource() {
@@ -128,6 +103,26 @@ public class SecurityConfig {
                 config.setAllowCredentials(true);
                 source.registerCorsConfiguration("/**", config);
                 return source;
+        }
+
+        @Bean
+        protected RegisteredClientRepository registeredClientRepository() {
+                RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                                .clientId("oidc-client")
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("http://localhost:8000/callback")
+                                .redirectUri("http://localhost:8000/silent-renew")
+                                .postLogoutRedirectUri("http://localhost:8000/")
+                                .scope(OidcScopes.OPENID)
+                                .clientSettings(ClientSettings.builder().requireProofKey(true).build())
+                                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
+                                                .refreshTokenTimeToLive(Duration.ofHours(2)).reuseRefreshTokens(false)
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
+                                .build();
+
+                return new InMemoryRegisteredClientRepository(oidcClient);
         }
 
         @Bean
@@ -161,11 +156,6 @@ public class SecurityConfig {
         }
 
         @Bean
-        protected JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
-                return new NimbusJwtEncoder(jwkSource);
-        }
-
-        @Bean
         protected PasswordEncoder passwordEncoder() {
                 return PasswordEncoderFactories.createDelegatingPasswordEncoder();
         }
@@ -176,44 +166,34 @@ public class SecurityConfig {
         }
 
         @Bean
-        AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-                        throws Exception {
-                return authenticationConfiguration.getAuthenticationManager();
-        }
-
-        @Bean
         protected AuthorizationServerSettings authorizationServerSettings() {
                 return AuthorizationServerSettings.builder().build();
         }
 
-        // @Bean
-        // protected OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(
-        // OidcUserInfoService oidcUserInfoService) {
-        // return (context) -> {
+        @Bean
+        protected OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(
+                        OidcUserInfoService oidcUserInfoService) {
+                return (context) -> {
 
-        // if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
-        // context.getClaims().claims((claims) -> {
-        // if (context.getAuthorizationGrantType()
-        // .equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
-        // Set<String> roles = context.getClaims().build().getClaim("scope");
-        // claims.put("roles", roles);
-        // } else if (context.getAuthorizationGrantType()
-        // .equals(AuthorizationGrantType.AUTHORIZATION_CODE)) {
-        // Set<String> roles = AuthorityUtils
-        // .authorityListToSet(
-        // context.getPrincipal().getAuthorities())
-        // .stream()
-        // .collect(Collectors.collectingAndThen(
-        // Collectors.toSet(),
-        // Collections::unmodifiableSet));
-        // claims.put("roles", roles);
-        // String username = (String) claims.get("sub");
-        // claims.putAll(oidcUserInfoService.loadUser(username).getClaims());
+                        if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
+                                context.getClaims().claims((claims) -> {
+                                        if (context.getAuthorizationGrantType()
+                                                        .equals(AuthorizationGrantType.AUTHORIZATION_CODE)) {
+                                                Set<String> roles = AuthorityUtils
+                                                                .authorityListToSet(
+                                                                                context.getPrincipal().getAuthorities())
+                                                                .stream()
+                                                                .collect(Collectors.collectingAndThen(
+                                                                                Collectors.toSet(),
+                                                                                Collections::unmodifiableSet));
+                                                claims.put("roles", roles);
+                                                String username = (String) claims.get("sub");
+                                                claims.putAll(oidcUserInfoService.loadUser(username).getClaims());
 
-        // }
-        // });
-        // }
-        // };
-        // }
+                                        }
+                                });
+                        }
+                };
+        }
 
 }

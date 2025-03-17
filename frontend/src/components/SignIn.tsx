@@ -5,11 +5,14 @@ import { useAuth } from "oidc-react";
 export default function SignIn() {
   const { signIn, signOut, userData, userManager } = useAuth();
 
-  async function handleSilentSignIn() {
+  async function handleSilentRenew() {
     const user = await userManager.signinSilent();
     if (user) {
-      console.log(user.access_token);
+      userManager.storeUser(user);
     }
+
+    // console.log("Neuer Refresh Token:", user?.access_token);
+    // console.log("Neuer Access Token:", user?.refresh_token);
   }
 
   if (userData) {
@@ -26,7 +29,7 @@ export default function SignIn() {
         <p>Refresh Token: {userData.refresh_token}</p>
         <br />
         <button onClick={() => signOut()}>Sign Out</button>
-        <button onClick={handleSilentSignIn}>Refresh</button>
+        <button onClick={handleSilentRenew}>Refresh</button>
       </div>
     );
   }

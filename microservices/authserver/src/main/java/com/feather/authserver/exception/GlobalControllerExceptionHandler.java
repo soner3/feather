@@ -42,12 +42,6 @@ public class GlobalControllerExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ProblemDetail> handleIllegalJwtTokenTypeException(IllegalJwtTokenTypeException ex) {
-        return HttpErrorInfo.errorInfo(ex, "Invalid Token Type", HttpStatus.UNAUTHORIZED);
-
-    }
-
-    @ExceptionHandler
     public ResponseEntity<ProblemDetail> handleBadJwtException(BadJwtException ex) {
         return HttpErrorInfo.errorInfo(ex, "Unknown Token Issuer", HttpStatus.UNAUTHORIZED);
 

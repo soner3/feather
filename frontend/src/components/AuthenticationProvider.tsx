@@ -23,8 +23,10 @@ export default function AuthenticationProvider({
     authority: "http://localhost:9000",
     clientId: "oidc-client",
     redirectUri: "http://localhost:8000/callback",
-    scope: "openid profile email",
-    autoSignIn: false,
+    silentRedirectUri: "http://localhost:8000/silent-renew",
+    scope: "openid",
+    automaticSilentRenew: true,
+    autoSignIn: true,
   };
   return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
 }

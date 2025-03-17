@@ -28,17 +28,17 @@ public class InitilaizeData implements CommandLineRunner {
 
                         userService.createUser(
                                         new CreateUserDto("admin@example.com", "admin", "+1234567890", "Admin", "User",
-                                                        "Adm!n$@1234"),
+                                                        "AdminUser1234!"),
                                         FeatherRole.ROLE_ADMIN);
 
                         userService.createUser(
                                         new CreateUserDto("staff@example.com", "staff", "+1987654321", "Staff", "User",
-                                                        "St@ff!4321"),
+                                                        "StaffUser1234!"),
                                         FeatherRole.ROLE_STAFF);
 
                         userService.createUser(
                                         new CreateUserDto("user@example.com", "user", "+1122334455", "Normal", "User",
-                                                        "Us3rst!r0ng!"),
+                                                        "UserUser1234!"),
                                         FeatherRole.ROLE_USER);
 
                 }
