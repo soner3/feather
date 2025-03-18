@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
@@ -58,6 +61,9 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+        @Value("${spring.security.oauth2.authorizationserver.issuer}")
+        private String issuer;
 
         @Bean
         @Order(1)
@@ -167,13 +173,32 @@ public class SecurityConfig {
 
         @Bean
         protected AuthorizationServerSettings authorizationServerSettings() {
-                return AuthorizationServerSettings.builder().build();
+                return AuthorizationServerSettings
+                                .builder()
+                                .issuer(issuer)
+                                .build();
         }
 
         @Bean
         protected OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(
                         OidcUserInfoService oidcUserInfoService) {
                 return (context) -> {
+                        if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
+                                context.getClaims().claims(claims -> {
+                                        // System.out.println(claims.get("sub")); // username
+                                        Set<String> roles = AuthorityUtils
+                                                        .authorityListToSet(context.getPrincipal().getAuthorities())
+                                                        .stream()
+                                                        .collect(Collectors.collectingAndThen(Collectors.toSet(),
+                                                                        Collections::unmodifiableSet));
+                                        claims.put("roles", roles);
+                                        OidcUserInfo userInfo = oidcUserInfoService
+                                                        .loadUser((String) claims.get("sub"));
+                                        claims.putAll(userInfo.getClaims());
+                                        // System.out.println(claims.get("sub")); // user-id
+                                });
+
+                        }
 
                         if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
                                 context.getClaims().claims((claims) -> {

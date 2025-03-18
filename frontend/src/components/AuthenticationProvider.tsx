@@ -20,10 +20,11 @@ export default function AuthenticationProvider({
     onSignIn: () => {
       router.push("/");
     },
-    authority: "http://localhost:9000",
+    authority: "http://localhost:8000/feather/authserver",
     clientId: "oidc-client",
     redirectUri: "http://localhost:8000/callback",
     silentRedirectUri: "http://localhost:8000/silent-renew",
+    loadUserInfo: true,
     scope: "openid",
     automaticSilentRenew: true,
     autoSignIn: true,

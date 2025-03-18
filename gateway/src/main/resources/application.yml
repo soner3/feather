@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8000/feather/authserver/v1/token/jwk
+          jwk-set-uri: http://localhost:8000/feather/authserver/oauth2/jwks
 
 management:
   endpoints:

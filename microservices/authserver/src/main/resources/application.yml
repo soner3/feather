@@ -12,6 +12,10 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: true
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: http://localhost:8000/feather/authserver
 
 management:
   endpoints:

@@ -10,9 +10,6 @@ export default function SignIn() {
     if (user) {
       userManager.storeUser(user);
     }
-
-    // console.log("Neuer Refresh Token:", user?.access_token);
-    // console.log("Neuer Access Token:", user?.refresh_token);
   }
 
   if (userData) {
@@ -25,8 +22,6 @@ export default function SignIn() {
         <p>Refresh Token: {userData.refresh_token}</p>
         <br />
         <p>Info: {userData.profile.sub}</p>
-        <br />
-        <p>Refresh Token: {userData.refresh_token}</p>
         <br />
         <button onClick={() => signOut()}>Sign Out</button>
         <button onClick={handleSilentRenew}>Refresh</button>
