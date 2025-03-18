@@ -1,32 +1,63 @@
-"use client";
+import React from "react";
+import { hasAuthParams, useAuth } from "react-oidc-context";
 
-import { useAuth } from "oidc-react";
+function App() {
+  const auth = useAuth();
 
-export default function SignIn() {
-  const { signIn, signOut, userData, userManager } = useAuth();
+  const [hasTriedSignin, setHasTriedSignin] = React.useState(false);
 
-  async function handleSilentRenew() {
-    const user = await userManager.signinSilent();
-    if (user) {
-      userManager.storeUser(user);
+  // automatically sign-in
+  React.useEffect(() => {
+    if (
+      !hasAuthParams() &&
+      !auth.isAuthenticated &&
+      !auth.activeNavigator &&
+      !auth.isLoading &&
+      !hasTriedSignin
+    ) {
+      auth.signinRedirect();
+      setHasTriedSignin(true);
     }
+  }, [auth, hasTriedSignin]);
+
+  switch (auth.activeNavigator) {
+    case "signinSilent":
+      return <div>Signing you in...</div>;
+    case "signoutRedirect":
+      return <div>Signing you out...</div>;
   }
 
-  if (userData) {
+  if (auth.isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (auth.error) {
+    return <div>Oops... {auth.error.message}</div>;
+  }
+
+  if (auth.isLoading) {
+    return <div>Signing you in/out...</div>;
+  }
+
+  if (!auth.isAuthenticated) {
+    return <div>Unable to log in</div>;
+  }
+
+  if (auth.isAuthenticated) {
     return (
-      <div>
-        <p>Access Token: {userData.access_token}</p>
-        <br />
-        <hr />
-        <br />
-        <p>Refresh Token: {userData.refresh_token}</p>
-        <br />
-        <p>Info: {userData.profile.sub}</p>
-        <br />
-        <button onClick={() => signOut()}>Sign Out</button>
-        <button onClick={handleSilentRenew}>Refresh</button>
-      </div>
+      <>
+        <p>Access Token: {auth.user?.access_token}</p>
+        <div>
+          <br />
+          <p>Hello {auth.user?.profile.sub}</p>
+          <br />
+          <button onClick={() => auth.removeUser()}>Log out</button>
+        </div>
+      </>
     );
   }
-  return <button onClick={() => signIn()}>Sign In</button>;
+
+  return <button onClick={() => auth.signinRedirect()}>Log in</button>;
 }
+
+export default App;

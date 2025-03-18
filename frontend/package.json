@@ -11,9 +11,10 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",
     "next": "15.1.7",
-    "oidc-react": "^3.4.1",
+    "oidc-client-ts": "^3.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-oidc-context": "^3.2.0",
     "react-redux": "^9.2.0"
   },
   "devDependencies": {

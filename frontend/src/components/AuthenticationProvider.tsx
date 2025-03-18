@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthProviderProps } from "oidc-react";
+import { AuthProviderProps } from "react-oidc-context";
+import { WebStorageStateStore } from "oidc-client-ts";
 
 const DynamicAuthProvider = dynamic(
-  () => import("oidc-react").then((mod) => mod.AuthProvider),
+  () => import("react-oidc-context").then((mod) => mod.AuthProvider),
   { ssr: false }
 );
 
@@ -16,18 +17,25 @@ export default function AuthenticationProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const oidcConfig: AuthProviderProps = {
-    onSignIn: () => {
-      router.push("/");
-    },
-    authority: "http://localhost:8000/feather/authserver",
-    clientId: "oidc-client",
-    redirectUri: "http://localhost:8000/callback",
-    silentRedirectUri: "http://localhost:8000/silent-renew",
-    loadUserInfo: true,
-    scope: "openid",
-    automaticSilentRenew: true,
-    autoSignIn: true,
-  };
+  const [oidcConfig, setOidcConfig] = useState<AuthProviderProps | null>(null);
+
+  useEffect(() => {
+    setOidcConfig({
+      authority: "http://localhost:8000/feather/authserver",
+      client_id: "oidc-client",
+      redirect_uri: "http://localhost:8000/callback",
+      silent_redirect_uri: "http://localhost:8000/silent-renew",
+      loadUserInfo: true,
+      scope: "openid",
+      automaticSilentRenew: true,
+      userStore: new WebStorageStateStore({ store: window.localStorage }),
+      onSigninCallback: () => {
+        router.push("/");
+      },
+    });
+  }, [router]);
+
+  if (!oidcConfig) return null;
+
   return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
 }
