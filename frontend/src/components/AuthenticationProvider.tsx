@@ -21,7 +21,7 @@ export default function AuthenticationProvider({
 
   useEffect(() => {
     setOidcConfig({
-      authority: "http://localhost:8000/feather/authserver",
+      authority: "http://localhost:9000",
       client_id: "oidc-client",
       redirect_uri: "http://localhost:8000/callback",
       silent_redirect_uri: "http://localhost:8000/silent-renew",
@@ -34,8 +34,6 @@ export default function AuthenticationProvider({
       },
     });
   }, [router]);
-
-  if (!oidcConfig) return null;
 
   return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
 }

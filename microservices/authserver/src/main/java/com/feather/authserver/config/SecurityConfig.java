@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -61,9 +60,6 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-        @Value("${spring.security.oauth2.authorizationserver.issuer}")
-        private String issuer;
 
         @Bean
         @Order(1)
@@ -173,10 +169,7 @@ public class SecurityConfig {
 
         @Bean
         protected AuthorizationServerSettings authorizationServerSettings() {
-                return AuthorizationServerSettings
-                                .builder()
-                                .issuer(issuer)
-                                .build();
+                return AuthorizationServerSettings.builder().build();
         }
 
         @Bean
