@@ -1,13 +1,16 @@
-import React from "react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { hasAuthParams, useAuth } from "react-oidc-context";
 
 function App() {
   const auth = useAuth();
-
-  const [hasTriedSignin, setHasTriedSignin] = React.useState(false);
+  const [hasTriedSignin, setHasTriedSignin] = useState(false);
+  const router = useRouter();
 
   // automatically sign-in
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !hasAuthParams() &&
       !auth.isAuthenticated &&
@@ -51,7 +54,16 @@ function App() {
           <br />
           <p>Hello {auth.user?.profile.sub}</p>
           <br />
-          <button onClick={() => auth.removeUser()}>Log out</button>
+          <button
+            onClick={async () => {
+              await auth.signinSilent();
+              router.refresh();
+            }}
+          >
+            Refresh
+          </button>
+          <br />
+          <button onClick={() => auth.signoutRedirect()}>Log out</button>
         </div>
       </>
     );

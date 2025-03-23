@@ -10,9 +10,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthenticationProvider>
-          <StoreProvider>{children}</StoreProvider>
-        </AuthenticationProvider>
+        <StoreProvider>
+          <AuthenticationProvider>{children}</AuthenticationProvider>
+        </StoreProvider>
       </body>
     </html>
   );

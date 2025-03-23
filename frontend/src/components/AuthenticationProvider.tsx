@@ -25,6 +25,7 @@ export default function AuthenticationProvider({
       client_id: "oidc-client",
       redirect_uri: "http://localhost:8000/callback",
       silent_redirect_uri: "http://localhost:8000/silent-renew",
+      post_logout_redirect_uri: "http://localhost:8000",
       loadUserInfo: true,
       scope: "openid",
       automaticSilentRenew: true,
@@ -34,6 +35,10 @@ export default function AuthenticationProvider({
       },
     });
   }, [router]);
+
+  if (!oidcConfig) {
+    return null;
+  }
 
   return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
 }

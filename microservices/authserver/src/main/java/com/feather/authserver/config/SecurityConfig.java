@@ -116,7 +116,7 @@ public class SecurityConfig {
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                                 .redirectUri("http://localhost:8000/callback")
                                 .redirectUri("http://localhost:8000/silent-renew")
-                                .postLogoutRedirectUri("http://localhost:8000/")
+                                .postLogoutRedirectUri("http://localhost:8000")
                                 .scope(OidcScopes.OPENID)
                                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                                 .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))

@@ -1,5 +1,3 @@
-import SilentRenew from "@/components/SilentRenew";
-
 export default function page() {
-  return <SilentRenew />;
+  return <div>Silent Renew in Progress...</div>;
 }
