@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -61,6 +62,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+        @Value("${app.frontend.uri}")
+        private String frontendUri;
+
+        @Value("${app.frontend.client-id}")
+        private String frontendClientId;
+
+        @Value("${app.frontend.redirect-uri.login}")
+        private String frontendLoginRedirect;
+
+        @Value("${app.frontend.redirect-uri.refresh}")
+        private String frontendRefreshRedirect;
+
+        @Value("${app.frontend.redirect-uri.logout}")
+        private String frontendLogoutRedirect;
+
         @Bean
         @Order(1)
         protected SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
@@ -88,7 +104,12 @@ public class SecurityConfig {
         protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
+                                .csrf(csrf -> csrf
+                                                .ignoringRequestMatchers("/v1/user/public**"))
                                 .authorizeHttpRequests((authorize) -> authorize
+                                                .requestMatchers("/actuator/**").permitAll()
+                                                .requestMatchers("/auth-server/**").permitAll()
+                                                .requestMatchers("/v1/user/public**").permitAll()
                                                 .anyRequest().authenticated())
                                 .formLogin(Customizer.withDefaults());
 
@@ -101,7 +122,7 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 config.addAllowedHeader("*");
                 config.addAllowedMethod("*");
-                config.addAllowedOrigin("http://localhost:8000");
+                config.addAllowedOrigin(frontendUri);
                 config.setAllowCredentials(true);
                 source.registerCorsConfiguration("/**", config);
                 return source;
@@ -110,13 +131,13 @@ public class SecurityConfig {
         @Bean
         protected RegisteredClientRepository registeredClientRepository() {
                 RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                                .clientId("oidc-client")
+                                .clientId(frontendClientId)
                                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                                .redirectUri("http://localhost:8000/callback")
-                                .redirectUri("http://localhost:8000/silent-renew")
-                                .postLogoutRedirectUri("http://localhost:8000")
+                                .redirectUri(frontendLoginRedirect)
+                                .redirectUri(frontendRefreshRedirect)
+                                .postLogoutRedirectUri(frontendLogoutRedirect)
                                 .scope(OidcScopes.OPENID)
                                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
                                 .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))

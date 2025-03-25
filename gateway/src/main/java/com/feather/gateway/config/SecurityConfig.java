@@ -1,8 +1,8 @@
 package com.feather.gateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -11,7 +11,6 @@ import org.springframework.security.web.server.csrf.CookieServerCsrfTokenReposit
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -22,6 +21,9 @@ import reactor.core.publisher.Mono;
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Bean
     protected SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -40,14 +42,16 @@ public class SecurityConfig {
                         .anyExchange().authenticated())
                 .csrf(csrf -> {
                     csrf.csrfTokenRepository(tokenRepository);
-                    csrf.csrfTokenRequestHandler(requestHandler).requireCsrfProtectionMatcher(exchange -> {
-                        String path = exchange.getRequest().getPath().toString();
-                        if (path.startsWith("/feather/authserver/")
-                                || exchange.getRequest().getMethod().equals(HttpMethod.GET)) {
-                            return ServerWebExchangeMatcher.MatchResult.notMatch();
-                        }
-                        return ServerWebExchangeMatcher.MatchResult.match();
-                    });
+                    csrf.csrfTokenRequestHandler(requestHandler);
+                    // .requireCsrfProtectionMatcher(exchange
+                    // -> {
+                    // String path = exchange.getRequest().getPath().toString();
+                    // if (path.startsWith("/feather/authserver/")
+                    // || exchange.getRequest().getMethod().equals(HttpMethod.GET)) {
+                    // return ServerWebExchangeMatcher.MatchResult.notMatch();
+                    // }
+                    // return ServerWebExchangeMatcher.MatchResult.match();
+                    // });
                 })
                 .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
                 .oauth2ResourceServer((oauth2) -> oauth2
@@ -61,7 +65,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        config.addAllowedOrigin("http://localhost:8000");
+        config.addAllowedOrigin(frontendUrl);
         config.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", config);
         return source;
