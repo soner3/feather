@@ -1,27 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { hasAuthParams, useAuth } from "react-oidc-context";
+import { useAuth } from "react-oidc-context";
 
-function App() {
+export default function SignIn() {
   const auth = useAuth();
-  const [hasTriedSignin, setHasTriedSignin] = useState(false);
-  const router = useRouter();
-
-  // automatically sign-in
-  useEffect(() => {
-    if (
-      !hasAuthParams() &&
-      !auth.isAuthenticated &&
-      !auth.activeNavigator &&
-      !auth.isLoading &&
-      !hasTriedSignin
-    ) {
-      auth.signinRedirect();
-      setHasTriedSignin(true);
-    }
-  }, [auth, hasTriedSignin]);
 
   switch (auth.activeNavigator) {
     case "signinSilent":
@@ -42,10 +24,6 @@ function App() {
     return <div>Signing you in/out...</div>;
   }
 
-  if (!auth.isAuthenticated) {
-    return <div>Unable to log in</div>;
-  }
-
   if (auth.isAuthenticated) {
     return (
       <>
@@ -54,14 +32,7 @@ function App() {
           <br />
           <p>Hello {auth.user?.profile.sub}</p>
           <br />
-          <button
-            onClick={async () => {
-              await auth.signinSilent();
-              router.refresh();
-            }}
-          >
-            Refresh
-          </button>
+          <button onClick={() => auth.signinSilent()}>Refresh</button>
           <br />
           <button onClick={() => auth.signoutRedirect()}>Log out</button>
         </div>
@@ -71,5 +42,3 @@ function App() {
 
   return <button onClick={() => auth.signinRedirect()}>Log in</button>;
 }
-
-export default App;

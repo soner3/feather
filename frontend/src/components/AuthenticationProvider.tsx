@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AuthProviderProps } from "react-oidc-context";
 import { WebStorageStateStore } from "oidc-client-ts";
 
@@ -16,7 +15,6 @@ export default function AuthenticationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [oidcConfig, setOidcConfig] = useState<AuthProviderProps | null>(null);
 
   useEffect(() => {
@@ -30,11 +28,8 @@ export default function AuthenticationProvider({
       scope: "openid",
       automaticSilentRenew: true,
       userStore: new WebStorageStateStore({ store: window.localStorage }),
-      onSigninCallback: () => {
-        router.push("/");
-      },
     });
-  }, [router]);
+  }, []);
 
   if (!oidcConfig) {
     return null;
