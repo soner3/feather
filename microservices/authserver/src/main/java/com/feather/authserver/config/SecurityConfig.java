@@ -105,11 +105,12 @@ public class SecurityConfig {
                         throws Exception {
                 http
                                 .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/v1/user/public**"))
+                                                .ignoringRequestMatchers("/v1/user/**"))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers("/auth-server/**").permitAll()
-                                                .requestMatchers("/v1/user/public**").permitAll()
+                                                .requestMatchers("/v1/user/public/**").permitAll()
+                                                .requestMatchers("/v1/user/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .formLogin(Customizer.withDefaults());
 

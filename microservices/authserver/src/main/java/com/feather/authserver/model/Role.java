@@ -36,7 +36,7 @@ public class Role extends AuditEntity {
     @Id
     @Column(name = "role_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID roleId;
 
     @Enumerated(EnumType.STRING)
     private FeatherRole name;

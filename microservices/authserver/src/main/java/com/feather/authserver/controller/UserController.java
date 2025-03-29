@@ -1,15 +1,21 @@
 package com.feather.authserver.controller;
 
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.feather.lib.dto.user.CreateUserDto;
 import com.feather.lib.dto.user.ResponseUserDto;
-
-import jakarta.validation.Valid;
+import com.feather.lib.dto.user.UpdateUserDto;
 
 public interface UserController {
 
-    ResponseEntity<ResponseUserDto> createUser(@RequestBody @Valid CreateUserDto createUserDto);
+    ResponseEntity<ResponseUserDto> createUser(CreateUserDto createUserDto);
+
+    ResponseEntity<ResponseUserDto> getUser(UUID userId);
+
+    ResponseEntity<ResponseUserDto> updateUser(UUID userId, UpdateUserDto updateUserDto);
+
+    ResponseEntity<Void> deleteUser(UUID userId);
 
 }

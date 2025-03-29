@@ -42,7 +42,7 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl build(User user, Collection<? extends GrantedAuthority> authorities) {
         return new UserDetailsImpl(
-                user.getId().toString(),
+                user.getUserId().toString(),
                 user.getEmail(),
                 user.getUsername(),
                 user.getPhoneNumber(),

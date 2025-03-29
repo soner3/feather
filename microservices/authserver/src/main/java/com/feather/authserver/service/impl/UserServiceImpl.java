@@ -3,6 +3,7 @@ package com.feather.authserver.service.impl;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,12 @@ import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
 import com.feather.lib.dto.user.CreateUserDto;
 import com.feather.lib.dto.user.ResponseUserDto;
+import com.feather.lib.dto.user.UpdateUserDto;
 import com.feather.lib.exception.AlreadyExistsException;
 import com.feather.lib.exception.CompromisedPasswordException;
 import com.feather.lib.exception.NotFoundException;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -105,7 +108,14 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateCredentials(CreateUserDto createUserDto) {
+
         checkPassword(createUserDto.password());
+
+        if (!createUserDto.password().equals(createUserDto.rePassword())) {
+            throw new CompromisedPasswordException(
+                    "Password and Re-Password do not match");
+        }
+
         if (userRepository.existsByEmail(createUserDto.email())) {
             throw new AlreadyExistsException("User with this email already exists");
         }
@@ -117,6 +127,45 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByPhoneNumber(createUserDto.phoneNumber())) {
             throw new AlreadyExistsException("User with this phonenumber already exists");
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(UUID userId) {
+        int entityCount = userRepository.deleteByUserId(userId);
+        if (entityCount <= 0) {
+            throw new NotFoundException("No entity found to delete");
+        }
+
+    }
+
+    @Override
+    public ResponseEntity<ResponseUserDto> getUser(UUID userId) {
+        User user = loadUser(userId);
+        ResponseUserDto responseUserDto = conversionService.convert(user, ResponseUserDto.class);
+        return ResponseEntity.ok(responseUserDto);
+
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseUserDto> updateUser(UUID userId, UpdateUserDto updateUserDto) {
+        User user = loadUser(userId);
+        user.setEmail(updateUserDto.email());
+        user.setPhoneNumber(updateUserDto.phoneNumber());
+        user.setUsername(updateUserDto.username());
+        user.setFirstName(updateUserDto.firstName());
+        user.setLastName(updateUserDto.lastName());
+
+        User savedUser = userRepository.save(user);
+        ResponseUserDto responseUserDto = conversionService.convert(savedUser, ResponseUserDto.class);
+        return ResponseEntity.ok(responseUserDto);
+
+    }
+
+    private User loadUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("No user found for id: " + userId.toString()));
     }
 
 }

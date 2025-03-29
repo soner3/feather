@@ -23,7 +23,7 @@ public class OidcUserInfoService {
 
     private Map<String, Object> createUserInfo(User user) {
         return OidcUserInfo.builder()
-                .subject(user.getId().toString())
+                .subject(user.getUserId().toString())
                 .name(user.getFirstName() + " " + user.getLastName())
                 .givenName(user.getFirstName())
                 .familyName(user.getLastName())

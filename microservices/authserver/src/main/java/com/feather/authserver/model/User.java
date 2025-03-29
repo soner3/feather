@@ -31,7 +31,7 @@ public class User extends AuditEntity {
     @Id
     @Column(name = "user_id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID userId;
 
     @Column(unique = true, nullable = false)
     private String email;
