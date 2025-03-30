@@ -14,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.feather.authserver.dto.user.CreateUserDto;
 import com.feather.authserver.dto.user.ResponseUserDto;
@@ -28,11 +29,12 @@ import com.feather.authserver.repository.RoleRepository;
 import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -84,7 +86,7 @@ public class UserServiceImpl implements UserService {
                 break;
         }
 
-        User user = new User(createUserDto.email(), createUserDto.username(), createUserDto.phoneNumber(),
+        User user = new User(createUserDto.email(), createUserDto.username(),
                 createUserDto.firstName(), createUserDto.lastName(), passwordEncoder.encode(createUserDto.password()),
                 userRole);
 
@@ -124,9 +126,6 @@ public class UserServiceImpl implements UserService {
             throw new AlreadyExistsException("User with this username already exists");
         }
 
-        if (userRepository.existsByPhoneNumber(createUserDto.phoneNumber())) {
-            throw new AlreadyExistsException("User with this phonenumber already exists");
-        }
     }
 
     @Override
@@ -152,7 +151,6 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<ResponseUserDto> updateUser(UUID userId, UpdateUserDto updateUserDto) {
         User user = loadUser(userId);
         user.setEmail(updateUserDto.email());
-        user.setPhoneNumber(updateUserDto.phoneNumber());
         user.setUsername(updateUserDto.username());
         user.setFirstName(updateUserDto.firstName());
         user.setLastName(updateUserDto.lastName());

@@ -22,8 +22,6 @@ public class UserDetailsImpl implements UserDetails {
 
     private String username;
 
-    private String phoneNumber;
-
     private String firstName;
 
     private String lastName;
@@ -45,7 +43,6 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUserId().toString(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getPhoneNumber(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getPassword(),

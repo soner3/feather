@@ -29,7 +29,6 @@ public class OidcUserInfoService {
                 .familyName(user.getLastName())
                 .preferredUsername(user.getUsername())
                 .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
                 .build()
                 .getClaims();
 

@@ -37,9 +37,6 @@ public class User extends AuditEntity {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(name = "phone_number", unique = true, nullable = false)
-    private String phoneNumber;
-
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
@@ -66,11 +63,10 @@ public class User extends AuditEntity {
     @JoinColumn(name = "role_fk", nullable = false)
     private Role role;
 
-    public User(String email, String username, String phoneNumber, String firstName, String lastName, String password,
+    public User(String email, String username, String firstName, String lastName, String password,
             Role role) {
         this.email = email;
         this.username = username;
-        this.phoneNumber = phoneNumber;
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
