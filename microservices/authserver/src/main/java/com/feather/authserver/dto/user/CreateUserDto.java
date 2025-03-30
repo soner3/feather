@@ -1,11 +1,11 @@
-package com.feather.lib.dto.user;
+package com.feather.authserver.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record UpdateUserDto(
+public record CreateUserDto(
         @Email(message = "Invalid email format") @NotBlank(message = "Email is required") String email,
 
         @NotBlank(message = "Username is required") @Size(min = 1, max = 32, message = "Username must be between 1 and 32 characters") String username,
@@ -14,8 +14,8 @@ public record UpdateUserDto(
 
         @NotBlank(message = "First name is required") String firstName,
 
-        @NotBlank(message = "Last name is required") String lastName
+        @NotBlank(message = "Last name is required") String lastName,
 
-) {
-
+        @NotBlank(message = "Password is required") @Size(min = 8, message = "Password must be at least 8 characters long") String password,
+        @NotBlank(message = "RePassword is required") @Size(min = 8, message = "RePassword must be at least 8 characters long") String rePassword) {
 }

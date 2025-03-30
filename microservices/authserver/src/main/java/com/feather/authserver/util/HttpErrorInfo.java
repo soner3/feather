@@ -1,4 +1,4 @@
-package com.feather.lib.util;
+package com.feather.authserver.util;
 
 import java.net.URI;
 import java.util.HashMap;

@@ -10,8 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.feather.lib.exception.AlreadyExistsException;
-import com.feather.lib.util.HttpErrorInfo;
+import com.feather.authserver.util.HttpErrorInfo;
 
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {

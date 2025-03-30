@@ -1,4 +1,4 @@
-package com.feather.lib.exception;
+package com.feather.authserver.exception;
 
 public class NotFoundException extends RuntimeException {
 

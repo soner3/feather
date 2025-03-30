@@ -2,4 +2,3 @@ rootProject.name = 'feather'
 
 include ':microservices:authserver'
 include ':gateway'
-include ':lib'

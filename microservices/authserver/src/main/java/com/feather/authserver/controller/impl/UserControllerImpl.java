@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feather.authserver.controller.UserController;
+import com.feather.authserver.dto.user.CreateUserDto;
+import com.feather.authserver.dto.user.ResponseUserDto;
+import com.feather.authserver.dto.user.UpdateUserDto;
+import com.feather.authserver.exception.CompromisedPasswordException;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.service.UserService;
-import com.feather.lib.dto.user.CreateUserDto;
-import com.feather.lib.dto.user.ResponseUserDto;
-import com.feather.lib.dto.user.UpdateUserDto;
-import com.feather.lib.exception.CompromisedPasswordException;
-import com.feather.lib.util.HttpErrorInfo;
+import com.feather.authserver.util.HttpErrorInfo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,7 +57,7 @@ public class UserControllerImpl implements UserController {
             @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    public ResponseEntity<Void> deleteUser(@PathVariable(required = true, name = "userId") UUID userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
@@ -70,7 +70,7 @@ public class UserControllerImpl implements UserController {
             @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<ResponseUserDto> getUser(@PathVariable UUID userId) {
+    public ResponseEntity<ResponseUserDto> getUser(@PathVariable(required = true, name = "userId") UUID userId) {
         return userService.getUser(userId);
     }
 
@@ -82,7 +82,7 @@ public class UserControllerImpl implements UserController {
             @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<ResponseUserDto> updateUser(@PathVariable UUID userId,
+    public ResponseEntity<ResponseUserDto> updateUser(@PathVariable(required = true, name = "userId") UUID userId,
             @RequestBody @Valid UpdateUserDto updateUserDto) {
         return userService.updateUser(userId, updateUserDto);
     }

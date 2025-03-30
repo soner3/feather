@@ -1,4 +1,4 @@
-package com.feather.lib.model;
+package com.feather.authserver.model;
 
 import java.time.LocalDateTime;
 

@@ -15,18 +15,18 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.feather.authserver.dto.user.CreateUserDto;
+import com.feather.authserver.dto.user.ResponseUserDto;
+import com.feather.authserver.dto.user.UpdateUserDto;
+import com.feather.authserver.exception.AlreadyExistsException;
+import com.feather.authserver.exception.CompromisedPasswordException;
+import com.feather.authserver.exception.NotFoundException;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.model.Role;
 import com.feather.authserver.model.User;
 import com.feather.authserver.repository.RoleRepository;
 import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
-import com.feather.lib.dto.user.CreateUserDto;
-import com.feather.lib.dto.user.ResponseUserDto;
-import com.feather.lib.dto.user.UpdateUserDto;
-import com.feather.lib.exception.AlreadyExistsException;
-import com.feather.lib.exception.CompromisedPasswordException;
-import com.feather.lib.exception.NotFoundException;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

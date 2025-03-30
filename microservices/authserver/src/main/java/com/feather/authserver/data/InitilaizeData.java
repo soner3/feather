@@ -3,11 +3,11 @@ package com.feather.authserver.data;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.feather.authserver.dto.user.CreateUserDto;
 import com.feather.authserver.model.FeatherRole;
 import com.feather.authserver.model.Role;
 import com.feather.authserver.repository.RoleRepository;
 import com.feather.authserver.service.UserService;
-import com.feather.lib.dto.user.CreateUserDto;
 
 import lombok.RequiredArgsConstructor;
 
