@@ -34,10 +34,6 @@ public class GatewayApplication {
 	protected RouteLocator routeLocator(RouteLocatorBuilder routeLocatorBuilder) {
 		return routeLocatorBuilder.routes()
 				.route(r -> r
-						.path("/feather/authserver/**", "/auth-server/v3/api-docs")
-						.filters(f -> f.rewritePath("/feather/authserver/(?<segment>.*)", "/${segment}"))
-						.uri(authServerUrl))
-				.route(r -> r
 						.path("/**")
 						.and()
 						.path("/openapi/**").negate()

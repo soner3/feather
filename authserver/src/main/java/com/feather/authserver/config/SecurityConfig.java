@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,13 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -55,6 +62,8 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -104,8 +113,9 @@ public class SecurityConfig {
         protected SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
-                                .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/v1/user/**"))
+                                .csrf((csrf) -> csrf
+                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers("/auth-server/**").permitAll()
@@ -200,7 +210,6 @@ public class SecurityConfig {
                 return (context) -> {
                         if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
                                 context.getClaims().claims(claims -> {
-                                        // System.out.println(claims.get("sub")); // username
                                         Set<String> roles = AuthorityUtils
                                                         .authorityListToSet(context.getPrincipal().getAuthorities())
                                                         .stream()
@@ -210,7 +219,6 @@ public class SecurityConfig {
                                         OidcUserInfo userInfo = oidcUserInfoService
                                                         .loadUser((String) claims.get("sub"));
                                         claims.putAll(userInfo.getClaims());
-                                        // System.out.println(claims.get("sub")); // user-id
                                 });
 
                         }
@@ -234,6 +242,27 @@ public class SecurityConfig {
                                 });
                         }
                 };
+        }
+
+        final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+                private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+                private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
+
+                @Override
+                public void handle(HttpServletRequest request, HttpServletResponse response,
+                                Supplier<CsrfToken> csrfToken) {
+                        this.xor.handle(request, response, csrfToken);
+
+                        csrfToken.get();
+                }
+
+                @Override
+                public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+                        String headerValue = request.getHeader(csrfToken.getHeaderName());
+
+                        return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
+                                        csrfToken);
+                }
         }
 
 }

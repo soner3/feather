@@ -29,6 +29,12 @@ public class GlobalControllerExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<ProblemDetail> handleNotFoundException(NotFoundException ex) {
+        return HttpErrorInfo.errorInfo(ex, "Not Found", HttpStatus.NOT_FOUND);
+
+    }
+
+    @ExceptionHandler
     public ResponseEntity<ProblemDetail> handleBadCredentialsException(BadCredentialsException ex) {
         return HttpErrorInfo.errorInfo(ex, "Bad Credentials", HttpStatus.BAD_REQUEST);
 

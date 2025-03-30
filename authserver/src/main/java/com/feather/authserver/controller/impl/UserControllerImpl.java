@@ -52,7 +52,7 @@ public class UserControllerImpl implements UserController {
     @Override
     @DeleteMapping("/{userId}")
     @Operation(summary = "Deletes a user", description = "Deletes an existing user.", responses = {
-            @ApiResponse(responseCode = "204", description = "User deleted", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseUserDto.class))),
+            @ApiResponse(responseCode = "204", description = "User deleted", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetail.class)))

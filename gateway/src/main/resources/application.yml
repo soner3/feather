@@ -22,9 +22,6 @@ springdoc:
       - url: /v3/api-docs
         name: API Gateway Service
         display-name: API Gateway Service
-      - url: /feather/authserver/auth-server/v3/api-docs
-        name: Authentication Server
-        display-name: Authentication Server
 
 management:
   endpoints:

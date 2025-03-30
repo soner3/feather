@@ -18,6 +18,10 @@ springdoc:
     path: /auth-server/v3/api-docs
   swagger-ui:
     path: /auth-server/swagger-ui.html
+    csrf:
+      cookie-name: XSRF-TOKEN
+      header-name: X-XSRF-TOKEN
+      enabled: true
 
 management:
   endpoints:
