@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -64,11 +65,10 @@ public class User extends AuditEntity {
     @JoinColumn(name = "role_fk")
     private Role role;
 
-    @OneToOne
-    @JoinColumn(name = "profile_fk")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Profile profile;
 
-    public User(String email, String username, String firstName, String lastName, String password, Profile profile,
+    public User(String email, String username, String firstName, String lastName, String password,
             Role role) {
         this.email = email;
         this.username = username;
@@ -79,7 +79,6 @@ public class User extends AuditEntity {
         this.isAccountNonLocked = true;
         this.isCredentialsNonExpired = true;
         this.isEnabled = true;
-        this.profile = profile;
         this.role = role;
     }
 

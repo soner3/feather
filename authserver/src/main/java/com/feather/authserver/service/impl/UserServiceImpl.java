@@ -89,14 +89,13 @@ public class UserServiceImpl implements UserService {
                 break;
         }
 
-        Profile profile = profileRepository.save(new Profile());
-
         User user = new User(createUserDto.email(), createUserDto.username(),
                 createUserDto.firstName(), createUserDto.lastName(), passwordEncoder.encode(createUserDto.password()),
-                profile,
                 userRole);
 
         User savedUser = userRepository.save(user);
+        profileRepository.save(new Profile(savedUser));
+
         ResponseUserDto responseUserDto = conversionService.convert(savedUser, ResponseUserDto.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseUserDto);
 
