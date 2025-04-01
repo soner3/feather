@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,39 +32,43 @@ public class User extends AuditEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String username;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name")
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name")
     private String lastName;
 
     @ToString.Exclude
-    @Column(nullable = false)
+    @Column
     private String password;
 
-    @Column(name = "is_account_non_expired", nullable = false)
+    @Column(name = "is_account_non_expired")
     private boolean isAccountNonExpired;
 
-    @Column(name = "is_account_non_locked", nullable = false)
+    @Column(name = "is_account_non_locked")
     private boolean isAccountNonLocked;
 
-    @Column(name = "is_credentials_non_expired", nullable = false)
+    @Column(name = "is_credentials_non_expired")
     private boolean isCredentialsNonExpired;
 
-    @Column(name = "is_enabled", nullable = false)
+    @Column(name = "is_enabled")
     private boolean isEnabled;
 
     @ManyToOne
-    @JoinColumn(name = "role_fk", nullable = false)
+    @JoinColumn(name = "role_fk")
     private Role role;
 
-    public User(String email, String username, String firstName, String lastName, String password,
+    @OneToOne
+    @JoinColumn(name = "profile_fk")
+    private Profile profile;
+
+    public User(String email, String username, String firstName, String lastName, String password, Profile profile,
             Role role) {
         this.email = email;
         this.username = username;
@@ -74,6 +79,7 @@ public class User extends AuditEntity {
         this.isAccountNonLocked = true;
         this.isCredentialsNonExpired = true;
         this.isEnabled = true;
+        this.profile = profile;
         this.role = role;
     }
 

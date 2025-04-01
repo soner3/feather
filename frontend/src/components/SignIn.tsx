@@ -32,6 +32,21 @@ export default function SignIn() {
           <br />
           <p>Hello {auth.user?.profile.sub}</p>
           <br />
+          <button
+            onClick={async () => {
+              const res = await fetch("http://localhost:9000/v1/user", {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+              });
+              const data = await res.json();
+              console.log(data);
+            }}
+          >
+            Fetch User
+          </button>
+          <br />
           <button onClick={() => auth.signinSilent()}>Refresh</button>
           <br />
           <button onClick={() => auth.signoutRedirect()}>Log out</button>

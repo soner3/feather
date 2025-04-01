@@ -23,8 +23,10 @@ import com.feather.authserver.exception.AlreadyExistsException;
 import com.feather.authserver.exception.CompromisedPasswordException;
 import com.feather.authserver.exception.NotFoundException;
 import com.feather.authserver.model.FeatherRole;
+import com.feather.authserver.model.Profile;
 import com.feather.authserver.model.Role;
 import com.feather.authserver.model.User;
+import com.feather.authserver.repository.ProfileRepository;
 import com.feather.authserver.repository.RoleRepository;
 import com.feather.authserver.repository.UserRepository;
 import com.feather.authserver.service.UserService;
@@ -39,6 +41,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProfileRepository profileRepository;
     private final CompromisedPasswordChecker passwordChecker;
     private final PasswordEncoder passwordEncoder;
     private final ConversionService conversionService;
@@ -86,8 +89,11 @@ public class UserServiceImpl implements UserService {
                 break;
         }
 
+        Profile profile = profileRepository.save(new Profile());
+
         User user = new User(createUserDto.email(), createUserDto.username(),
                 createUserDto.firstName(), createUserDto.lastName(), passwordEncoder.encode(createUserDto.password()),
+                profile,
                 userRole);
 
         User savedUser = userRepository.save(user);
