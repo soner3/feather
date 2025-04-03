@@ -25,4 +25,6 @@ public interface UserService {
 
     void deleteUser(UUID userId);
 
+    public User loadUser(UUID userId);
+
 }

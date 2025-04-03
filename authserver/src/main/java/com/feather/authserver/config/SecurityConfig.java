@@ -99,7 +99,9 @@ public class SecurityConfig {
                                                 .oidc(Customizer.withDefaults()))
                                 .authorizeHttpRequests((authorize) -> authorize
                                                 .anyRequest().authenticated())
-                                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                                .headers(headers -> headers
+                                                .contentSecurityPolicy(policy -> policy.policyDirectives(
+                                                                "frame-ancestors 'self' " + frontendUri)))
                                 .exceptionHandling((exceptions) -> exceptions
                                                 .defaultAuthenticationEntryPointFor(
                                                                 new LoginUrlAuthenticationEntryPoint("/login"),

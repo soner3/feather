@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private User loadUser(UUID userId) {
+    public User loadUser(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("No user found for id: " + userId.toString()));
     }

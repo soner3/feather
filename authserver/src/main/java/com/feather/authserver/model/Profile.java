@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "Feather-Profile")
@@ -36,6 +37,8 @@ public class Profile {
 
     @OneToOne
     @JoinColumn(name = "user_fk")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
     public Profile(User user) {

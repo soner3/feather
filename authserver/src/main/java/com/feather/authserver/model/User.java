@@ -66,6 +66,8 @@ public class User extends AuditEntity {
     private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Profile profile;
 
     public User(String email, String username, String firstName, String lastName, String password,

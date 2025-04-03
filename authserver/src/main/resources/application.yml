@@ -12,6 +12,11 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: true
+  rabbitmq:
+    port: 5672
+    host: localhost
+    username: guest
+    password: guest
 
 springdoc:
   api-docs:

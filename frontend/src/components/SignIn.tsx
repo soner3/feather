@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "react-oidc-context";
+import useStompClient from "./useStompClient";
 
 export default function SignIn() {
   const auth = useAuth();
+  useStompClient(auth.isAuthenticated);
 
   switch (auth.activeNavigator) {
     case "signinSilent":
