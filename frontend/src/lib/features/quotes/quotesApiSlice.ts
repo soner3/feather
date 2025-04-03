@@ -29,6 +29,7 @@ export const quotesApiSlice = createApi({
       // `providesTags` determines which 'tag' is attached to the
       // cached data returned by the query.
       providesTags: (result, error, id) => [{ type: "Quotes", id }],
+      onCacheEntryAdded(arg, { cacheDataLoaded }) {},
     }),
   }),
 });

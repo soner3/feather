@@ -152,7 +152,7 @@ public class SecurityConfig {
                                 .postLogoutRedirectUri(frontendLogoutRedirect)
                                 .scope(OidcScopes.OPENID)
                                 .clientSettings(ClientSettings.builder().requireProofKey(true).build())
-                                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(10))
+                                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(2))
                                                 .refreshTokenTimeToLive(Duration.ofHours(2)).reuseRefreshTokens(false)
                                                 .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED).build())
                                 .build();
