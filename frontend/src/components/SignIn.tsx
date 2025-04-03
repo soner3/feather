@@ -5,7 +5,7 @@ import useStompClient from "./useStompClient";
 
 export default function SignIn() {
   const auth = useAuth();
-  useStompClient(auth.isAuthenticated);
+  // useStompClient(auth.isAuthenticated);
 
   switch (auth.activeNavigator) {
     case "signinSilent":

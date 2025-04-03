@@ -1,19 +1,21 @@
-import AuthenticationProvider from "@/components/AuthenticationProvider";
-import "./globals.css";
-import StoreProvider from "./StoreProvider";
+import type { ReactNode } from "react";
+import { StoreProvider } from "./StoreProvider";
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+import "./globals.css";
+import AuthenticationProvider from "../components/AuthenticationProvider";
+
+interface Props {
+  readonly children: ReactNode;
+}
+
+export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en">
-      <body>
-        <StoreProvider>
-          <AuthenticationProvider>{children}</AuthenticationProvider>
-        </StoreProvider>
-      </body>
-    </html>
+    <AuthenticationProvider>
+      <StoreProvider>
+        <html lang="en">
+          <body>{children}</body>
+        </html>
+      </StoreProvider>
+    </AuthenticationProvider>
   );
 }

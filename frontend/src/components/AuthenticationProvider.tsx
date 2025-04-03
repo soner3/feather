@@ -1,14 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { AuthProviderProps } from "react-oidc-context";
+import { AuthProvider, AuthProviderProps } from "react-oidc-context";
 import { WebStorageStateStore } from "oidc-client-ts";
 
-const DynamicAuthProvider = dynamic(
-  () => import("react-oidc-context").then((mod) => mod.AuthProvider),
-  { ssr: false }
-);
+// const DynamicAuthProvider = dynamic(
+//   () => import("react-oidc-context").then((mod) => mod.AuthProvider),
+//   { ssr: false }
+// );
 
 export default function AuthenticationProvider({
   children,
@@ -32,8 +32,14 @@ export default function AuthenticationProvider({
   }, []);
 
   if (!oidcConfig) {
-    return null;
+    return (
+      <html>
+        <body></body>
+      </html>
+    );
   }
 
-  return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
+  return <AuthProvider {...oidcConfig}>{children}</AuthProvider>;
+
+  // return <DynamicAuthProvider {...oidcConfig}>{children}</DynamicAuthProvider>;
 }
